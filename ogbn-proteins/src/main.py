@@ -398,6 +398,9 @@ def main():
 
     # run
     val_scores, test_scores = [], []
+    print(f"Number of node feature: {n_node_feats}")
+    print(f"Number of edge feature: {n_edge_feats}")
+    print(f"Number of params: {count_parameters(args, n_node_feats, n_edge_feats, n_classes)}")
 
     for i in range(args.n_runs):
         print("Running", i)

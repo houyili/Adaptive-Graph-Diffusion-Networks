@@ -19,4 +19,4 @@ python -u ../src/main.py \
     --edge-drop 0.1 \
     --norm none \
     --K 2 \
-    --gpu 0 
+    --gpu 0 --root "/home/lihouyi/ogb/gipa_plus/datasets/" 
