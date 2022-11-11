@@ -59,6 +59,7 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
             total += count
 
     if args.sample_type == "random_cluster":
+        global_labels_idx, global_pred_idx = None, None
         if args.use_labels:
             global_train_idx = _train_idx.cpu().clone()
             np.random.shuffle(global_train_idx[:50125])
@@ -188,7 +189,9 @@ def evaluate(args, graph, model, dataloader, labels, train_idx, val_idx, test_id
 
 def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running):
     evaluator_wrapper = lambda pred, labels: evaluator.eval({"y_pred": pred, "y_true": labels})["rocauc"]
-    
+
+    train_dataloader = None
+    eval_dataloader = None
     if args.sample_type == "neighbor_sample":
         train_batch_size = (len(train_idx) + args.train_partition_num - 1) // args.train_partition_num
         # train_batch_size = 100
@@ -229,8 +232,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running)
         )
     
     if args.sample_type == "random_cluster":
-        train_dataloader = None
-        eval_dataloader = None
+        pass
         # train_dataloader = RandomPartition(args.train_partition_num, graph, shuffle=True)
         # eval_dataloader = RandomPartition(args.eval_partition_num, graph, shuffle=False)
 
@@ -258,6 +260,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running)
 
     model = gen_model(args, n_node_feats, n_edge_feats, n_classes).to(device)
 
+    lr_scheduler = None
     if args.advanced_optimizer:
         optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.wd)
         lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="max", factor=0.75, patience=50, verbose=True)

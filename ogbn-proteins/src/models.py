@@ -316,6 +316,7 @@ class AGDNConv(nn.Module):
         self.hop_attn_drop = hop_attn_drop
         self.edge_drop = edge_drop
         self.leaky_relu = nn.LeakyReLU(negative_slope, inplace=True)
+        self.soft_plus = nn.Softplus()
         self.activation = activation
         self.position_emb = nn.Parameter(torch.Tensor(K+1, n_heads, out_feats))
         if weight_style == "HA":
@@ -409,7 +410,7 @@ class AGDNConv(nn.Module):
                 attn_edge = self.attn_edge_fc(feat_edge).view(-1, self._n_heads, 1)
                 graph.edata.update({"attn_edge": attn_edge})
                 e += graph.edata["attn_edge"]
-            e = self.leaky_relu(e)
+            e = self.soft_plus(e)
 
             if self.training and self.edge_drop > 0:
                 perm = torch.randperm(graph.number_of_edges(), device=e.device)
@@ -420,10 +421,10 @@ class AGDNConv(nn.Module):
                 eids = torch.arange(graph.number_of_edges(), device=e.device)
             graph.edata["a"] = torch.zeros_like(e)
             # graph.edata["a"][eids] = self.attn_drop((edge_softmax(graph, e[eids], eids=eids, norm_by='dst')))
-            graph.edata["a"][eids] = self.attn_drop(
-                                        torch.sqrt(edge_softmax(graph, e[eids], eids=eids, norm_by='dst').clamp(min=1e-9) \
-                                                 * edge_softmax(graph, e[eids], eids=eids, norm_by='src').clamp(min=1e-9)))
-            # graph.edata["a"][eids] = self.attn_drop(e[eids])
+            # graph.edata["a"][eids] = self.attn_drop(
+            #                             torch.sqrt(edge_softmax(graph, e[eids], eids=eids, norm_by='dst').clamp(min=1e-9) \
+            #                                      * edge_softmax(graph, e[eids], eids=eids, norm_by='src').clamp(min=1e-9)))
+            graph.edata["a"][eids] = self.attn_drop(e[eids])
             if self._norm == "adj":
                 graph.edata["a"][eids] = graph.edata["a"][eids] * graph.edata["gcn_norm_adjust"][eids].view(-1, 1, 1) 
             if self._norm == "avg":
