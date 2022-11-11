@@ -10,6 +10,7 @@ def gen_model(args, n_node_feats, n_edge_feats, n_classes):
     else:
         n_node_feats_ = n_node_feats
 
+    model = None
     if args.model == "gat":
         model = GAT(
             n_node_feats_,
@@ -51,6 +52,8 @@ def gen_model(args, n_node_feats, n_edge_feats, n_classes):
             use_one_hot=args.use_one_hot_feature,
             use_labels=args.use_labels,
             weight_style=args.weight_style,
+            batch_norm=not args.disable_fea_trans_norm,
+            edge_att_act=args.edge_att_act, edge_agg_mode=args.edge_agg_mode
         )
 
     return model

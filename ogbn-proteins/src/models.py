@@ -274,7 +274,7 @@ class AGDNConv(nn.Module):
         allow_zero_in_degree=True,
         norm="none",
         batch_norm=True,
-        weight_style="HA",
+        weight_style="HA", edge_att_act="leaky_relu", edge_agg_mode="both_softmax"
     ):
         super(AGDNConv, self).__init__()
         self._n_heads = n_heads
@@ -285,6 +285,7 @@ class AGDNConv(nn.Module):
         self._batch_norm = batch_norm
         self._K = K
         self._weight_style = weight_style
+        self.edge_agg_mode = edge_agg_mode
 
         # feat fc
         self.src_fc = nn.Linear(self._in_src_feats, out_feats * n_heads, bias=False)
@@ -316,7 +317,8 @@ class AGDNConv(nn.Module):
         self.hop_attn_drop = hop_attn_drop
         self.edge_drop = edge_drop
         self.leaky_relu = nn.LeakyReLU(negative_slope, inplace=True)
-        self.soft_plus = nn.Softplus()
+        self.edge_att_actv = self.leaky_relu if edge_att_act == "leaky_relu" else (nn.Softplus() \
+            if edge_att_act == "softplus" else nn.Tanh())
         self.activation = activation
         self.position_emb = nn.Parameter(torch.Tensor(K+1, n_heads, out_feats))
         if weight_style == "HA":
@@ -410,7 +412,8 @@ class AGDNConv(nn.Module):
                 attn_edge = self.attn_edge_fc(feat_edge).view(-1, self._n_heads, 1)
                 graph.edata.update({"attn_edge": attn_edge})
                 e += graph.edata["attn_edge"]
-            e = self.soft_plus(e)
+
+            e = self.edge_att_actv(e)
 
             if self.training and self.edge_drop > 0:
                 perm = torch.randperm(graph.number_of_edges(), device=e.device)
@@ -420,11 +423,16 @@ class AGDNConv(nn.Module):
             else:
                 eids = torch.arange(graph.number_of_edges(), device=e.device)
             graph.edata["a"] = torch.zeros_like(e)
-            # graph.edata["a"][eids] = self.attn_drop((edge_softmax(graph, e[eids], eids=eids, norm_by='dst')))
-            # graph.edata["a"][eids] = self.attn_drop(
-            #                             torch.sqrt(edge_softmax(graph, e[eids], eids=eids, norm_by='dst').clamp(min=1e-9) \
-            #                                      * edge_softmax(graph, e[eids], eids=eids, norm_by='src').clamp(min=1e-9)))
-            graph.edata["a"][eids] = self.attn_drop(e[eids])
+
+            if self.edge_agg_mode == "both_softmax":
+                graph.edata["a"][eids] = self.attn_drop(torch.sqrt(
+                    edge_softmax(graph, e[eids], eids=eids, norm_by='dst').clamp(min=1e-9)
+                    * edge_softmax(graph, e[eids], eids=eids, norm_by='src').clamp(min=1e-9)))
+            elif self.edge_agg_mode == "single_softmax":
+                graph.edata["a"][eids] = self.attn_drop((edge_softmax(graph, e[eids], eids=eids, norm_by='dst')))
+            else:
+                graph.edata["a"][eids] = self.attn_drop(e[eids])
+
             if self._norm == "adj":
                 graph.edata["a"][eids] = graph.edata["a"][eids] * graph.edata["gcn_norm_adjust"][eids].view(-1, 1, 1) 
             if self._norm == "avg":
@@ -496,7 +504,7 @@ class AGDN(nn.Module):
         use_one_hot=False,
         use_labels=False,
         edge_attention=False,
-        weight_style="HA",
+        weight_style="HA", batch_norm=True, edge_att_act="leaky_relu", edge_agg_mode="both_softmax"
     ):
         super().__init__()
         self.n_layers = n_layers
@@ -543,7 +551,8 @@ class AGDN(nn.Module):
                     residual=True,
                     allow_zero_in_degree=allow_zero_in_degree,
                     norm=norm,
-                    weight_style=weight_style,
+                    weight_style=weight_style, batch_norm=batch_norm, edge_att_act=edge_att_act,
+                    edge_agg_mode=edge_agg_mode
                 )
             )
             self.norms.append(nn.BatchNorm1d(n_heads * out_hidden))
