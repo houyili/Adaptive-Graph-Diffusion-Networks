@@ -188,6 +188,9 @@ def evaluate(args, graph, model, dataloader, labels, train_idx, val_idx, test_id
 
 
 def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running):
+    os.makedirs("%s/log" %(args.root), exist_ok=True)
+    log_f = open("%s/log/%d" %(args.root, int(time.time())), mode='a')
+
     evaluator_wrapper = lambda pred, labels: evaluator.eval({"y_pred": pred, "y_true": labels})["rocauc"]
 
     train_dataloader = None
@@ -294,14 +297,13 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running)
                 final_pred = pred
 
             if epoch % args.log_every == 0:
-                print(
-                    f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}, Average epoch time: {total_time / epoch:.2f}s"
-                )
-                print(
-                    f"Loss: {loss:.4f}\n"
-                    f"Train/Val/Test loss: {train_loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n"
-                    f"Train/Val/Test/Best val/Final test score: {train_score:.4f}/{val_score:.4f}/{test_score:.4f}/{best_val_score:.4f}/{final_test_score:.4f}"
-                )
+                out_msg = f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}, Average epoch time: {total_time / epoch:.2f}s\n" \
+                        f"Loss: {loss:.4f}\n" \
+                        f"Train/Val/Test loss: {train_loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n" \
+                        f"Train/Val/Test/Best val/Final test score: {train_score:.4f}/{val_score:.4f}/{test_score:.4f}/{best_val_score:.4f}/{final_test_score:.4f}"
+                print(out_msg)
+                log_f.write(out_msg)
+                log_f.flush()
 
             for l, e in zip(
                 [train_scores, val_scores, test_scores, losses, train_losses, val_losses, test_losses],
