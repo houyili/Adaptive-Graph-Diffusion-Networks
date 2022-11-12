@@ -273,7 +273,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
     
 
     total_time = 0
-    val_score, best_val_score, final_test_score = 0, 0, 0
+    val_score, best_val_score, final_test_score, best_step = 0, 0, 0, 0
 
     train_scores, val_scores, test_scores = [], [], []
     losses, train_losses, val_losses, test_losses = [], [], [], []
@@ -296,12 +296,13 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
                 best_val_score = val_score
                 final_test_score = test_score
                 final_pred = pred
+                best_step = epoch
 
             if epoch % args.log_every == 0:
                 out_msg = f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}, Average epoch time: {total_time / epoch:.2f}s\n" \
-                        f"Loss: {loss:.4f}\n" \
-                        f"Train/Val/Test loss: {train_loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n" \
-                        f"Train/Val/Test/Best val/Final test score: {train_score:.4f}/{val_score:.4f}/{test_score:.4f}/{best_val_score:.4f}/{final_test_score:.4f}\n"
+                        f"Loss: {loss:.4f} Train/Val/Test loss: {train_loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n" \
+                        f"Train/Val/Test: {train_score:.4f}/{val_score:.4f}/{test_score:.4f}\n"\
+                        f"Best val/Final test score/Best Step: {best_val_score:.4f}/{final_test_score:.4f}/{best_step}\n"
                 _yi_jian_san_lian(out_msg, log_f)
             for l, e in zip(
                 [train_scores, val_scores, test_scores, losses, train_losses, val_losses, test_losses],
