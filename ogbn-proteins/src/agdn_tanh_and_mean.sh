@@ -19,4 +19,4 @@ python -u ./main.py \
     --edge-drop 0.1 \
     --norm none \
     --K 2  --edge-agg-mode "none_softmax" --edge-att-act="tanh" --norm="avg"\
-    --gpu 3 --root "/home/lihouyi/ogb/datasets/" --log-file-name="tanh_no_softmax_mean"
+    --gpu 3 --root "/home/lihouyi/ogb/dataset/" --log-file-name="tanh_no_softmax_mean"
