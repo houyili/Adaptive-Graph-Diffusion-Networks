@@ -7,7 +7,7 @@ python -u ./main.py \
     --eval-times 1 \
     --lr 0.01 \
     --advanced-optimizer \
-    --n-epochs 2000 \
+    --n-epochs 1200 \
     --n-heads 6 \
     --n-layers 6 \
     --weight-style HC \
