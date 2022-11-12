@@ -186,11 +186,12 @@ def evaluate(args, graph, model, dataloader, labels, train_idx, val_idx, test_id
         preds,
     )
 
+def _yi_jian_san_lian(out_msg, log_f):
+    print(out_msg)
+    log_f.write(out_msg)
+    log_f.flush()
 
-def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running):
-    os.makedirs("%s/log" %(args.root), exist_ok=True)
-    log_f = open("%s/log/%d" %(args.root, int(time.time())), mode='a')
-
+def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running, log_f):
     evaluator_wrapper = lambda pred, labels: evaluator.eval({"y_pred": pred, "y_true": labels})["rocauc"]
 
     train_dataloader = None
@@ -301,10 +302,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running)
                         f"Loss: {loss:.4f}\n" \
                         f"Train/Val/Test loss: {train_loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n" \
                         f"Train/Val/Test/Best val/Final test score: {train_score:.4f}/{val_score:.4f}/{test_score:.4f}/{best_val_score:.4f}/{final_test_score:.4f}"
-                print(out_msg)
-                log_f.write(out_msg)
-                log_f.flush()
-
+                _yi_jian_san_lian(out_msg, log_f)
             for l, e in zip(
                 [train_scores, val_scores, test_scores, losses, train_losses, val_losses, test_losses],
                 [train_score, val_score, test_score, loss, train_loss, val_loss, test_loss],
@@ -314,9 +312,8 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running)
         if args.advanced_optimizer:
             lr_scheduler.step(val_score)
 
-    print("*" * 50)
-    print(f"Best val score: {best_val_score}, Final test score: {final_test_score}")
-    print("*" * 50)
+    out_msg = "*" * 50 + f"\nBest val score: {best_val_score}, Final test score: {final_test_score}\n" + "*" * 50 + "\n"
+    _yi_jian_san_lian(out_msg, log_f)
 
     if args.plot:
         plot_stats(args, train_scores, val_scores, test_scores, losses, train_losses, val_losses, test_losses, n_running)
@@ -407,12 +404,16 @@ def main():
     print(f"Number of edge feature: {n_edge_feats}")
     print(f"Number of params: {count_parameters(args, n_node_feats, n_edge_feats, n_classes)}")
 
+    version = int(time.time())
+    os.makedirs("%s/log" % (args.root), exist_ok=True)
     for i in range(args.n_runs):
+        log_f = open("%s/log/%d_part%d.log" % (args.root, version, i), mode='a')
         print("Running", i)
         seed(args.seed + i)
-        val_score, test_score = run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, i + 1)
+        val_score, test_score = run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, i + 1, log_f)
         val_scores.append(val_score)
         test_scores.append(test_score)
+        log_f.close()
 
     print(" ".join(sys.argv))
     print(args)
