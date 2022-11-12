@@ -19,4 +19,4 @@ python -u ./main.py \
     --edge-drop 0.1 \
     --norm none \
     --K 2 --edge-agg-mode "none_softmax" --edge-att-act="softplus" --norm="avg"\
-    --gpu 3 --root "/home/lihouyi/ogb/dataset/" --log-file-name="softplus_no_softmax_mean"
+    --gpu 3 --root "/home/lihouyi/ogb/gipa_plus/datasets/" --log-file-name="softplus_no_softmax_mean"
