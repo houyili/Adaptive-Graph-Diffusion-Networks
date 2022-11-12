@@ -407,7 +407,7 @@ def main():
     os.makedirs("%s/log" % (args.root), exist_ok=True)
     for i in range(args.n_runs):
         log_f = open("%s/log/%d_part%d.log" % (args.root, version, i), mode='a')
-        log_f.write(args + "\n" + title_msg)
+        log_f.write(args.__str__() + "\n" + title_msg)
         log_f.flush()
         print("Running", i)
         seed(args.seed + i)
