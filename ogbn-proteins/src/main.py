@@ -405,7 +405,7 @@ def main():
     title_msg = f"Number of node feature: {n_node_feats}\n" + f"Number of edge feature: {n_edge_feats}\n" + \
                 f"Number of params: {count_parameters(args, n_node_feats, n_edge_feats, n_classes)}\n"
     print(title_msg)
-    version = str(int(time.time())) if args.log_file_name=="" else args.log_file_name
+    version = str(int(time.time())) if args.log_file_name=="" else "%s_%d" %(args.log_file_name, int(time.time()))
     os.makedirs("%s/log" % (args.root), exist_ok=True)
     for i in range(args.n_runs):
         log_f = open("%s/log/%s_part%d.log" % (args.root, version, i) , mode='a')
