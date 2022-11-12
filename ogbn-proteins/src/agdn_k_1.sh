@@ -19,4 +19,4 @@ python -u ./main.py \
     --edge-drop 0.1 \
     --norm none \
     --K 1 \
-    --gpu 1 --root "/home/lihouyi/ogb/gipa_plus/datasets/"
+    --gpu 1 --root "/home/lihouyi/ogb/gipa_plus/datasets/" --log-file-name="k_equal_1"
