@@ -318,7 +318,7 @@ class AGDNConv(nn.Module):
         self.edge_drop = edge_drop
         self.leaky_relu = nn.LeakyReLU(negative_slope, inplace=True)
         self.edge_att_actv = nn.LeakyReLU(negative_slope, inplace=True) if edge_att_act == "leaky_relu" else nn.Softplus()
-        self.edge_att_actv = nn.Tanh if edge_att_act == "tanh" else self.edge_att_actv
+        self.edge_att_actv = nn.Tanh() if edge_att_act == "tanh" else self.edge_att_actv
         self.activation = activation
         self.position_emb = nn.Parameter(torch.Tensor(K+1, n_heads, out_feats))
         if weight_style == "HA":
