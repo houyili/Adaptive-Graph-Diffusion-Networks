@@ -317,8 +317,7 @@ class AGDNConv(nn.Module):
         self.hop_attn_drop = hop_attn_drop
         self.edge_drop = edge_drop
         self.leaky_relu = nn.LeakyReLU(negative_slope, inplace=True)
-        self.edge_att_actv = self.leaky_relu if edge_att_act == "leaky_relu" else (nn.Softplus() \
-            if edge_att_act == "softplus" else nn.Tanh())
+        self.edge_att_actv = nn.LeakyReLU(negative_slope, inplace=True) if edge_att_act == "leaky_relu" else nn.Softplus()
         self.activation = activation
         self.position_emb = nn.Parameter(torch.Tensor(K+1, n_heads, out_feats))
         if weight_style == "HA":
@@ -330,6 +329,7 @@ class AGDNConv(nn.Module):
         if weight_style == "HC":
             self.weights = nn.Parameter(torch.FloatTensor(size=(1, n_heads, K, out_feats)))
 
+        print("The new parameter are %s,%s,%s" %(self._batch_norm, edge_att_act, self.edge_agg_mode))
         self.reset_parameters()
 
     def reset_parameters(self):
