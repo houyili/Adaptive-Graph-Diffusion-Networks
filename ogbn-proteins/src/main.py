@@ -301,7 +301,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
                 out_msg = f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}, Average epoch time: {total_time / epoch:.2f}s\n" \
                         f"Loss: {loss:.4f}\n" \
                         f"Train/Val/Test loss: {train_loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n" \
-                        f"Train/Val/Test/Best val/Final test score: {train_score:.4f}/{val_score:.4f}/{test_score:.4f}/{best_val_score:.4f}/{final_test_score:.4f}"
+                        f"Train/Val/Test/Best val/Final test score: {train_score:.4f}/{val_score:.4f}/{test_score:.4f}/{best_val_score:.4f}/{final_test_score:.4f}\n"
                 _yi_jian_san_lian(out_msg, log_f)
             for l, e in zip(
                 [train_scores, val_scores, test_scores, losses, train_losses, val_losses, test_losses],
@@ -401,7 +401,7 @@ def main():
     # run
     val_scores, test_scores = [], []
     title_msg = f"Number of node feature: {n_node_feats}\n" + f"Number of edge feature: {n_edge_feats}\n" + \
-                f"Number of params: {count_parameters(args, n_node_feats, n_edge_feats, n_classes)}"
+                f"Number of params: {count_parameters(args, n_node_feats, n_edge_feats, n_classes)}\n"
     print(title_msg)
     version = int(time.time())
     os.makedirs("%s/log" % (args.root), exist_ok=True)
