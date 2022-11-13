@@ -331,7 +331,7 @@ class AGDNConv(nn.Module):
         if weight_style == "HC":
             self.weights = nn.Parameter(torch.FloatTensor(size=(1, n_heads, K, out_feats)))
 
-        print("The new parameter are %s,%s,%s" % (self._batch_norm, edge_att_act, self._edge_agg_mode))
+        # print("The new parameter are %s,%s,%s" % (self._batch_norm, edge_att_act, self._edge_agg_mode))
         print("Init %s" % str(self.__class__))
         self.reset_parameters()
 
@@ -566,6 +566,7 @@ class AGDN(nn.Module):
         self.input_drop = nn.Dropout(input_drop)
         self.dropout = nn.Dropout(dropout)
         self.activation = activation
+        print("The new parameter are %s,%s,%s" % (batch_norm, edge_att_act, edge_agg_mode))
         print("Init %s" % str(self.__class__))
 
     def forward(self, g):
