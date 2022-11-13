@@ -36,7 +36,7 @@ class GIPASMConv(AGDNSMConv):
         gain = super(GIPASMConv, self).reset_parameters()
         if self.agg_fc is not None:
             nn.init.xavier_normal_(self.agg_fc.weight, gain=gain)
-            print("Reset %s" % (self.__name__))
+            print("Reset %s" % str(self.agg_fc.__class__))
 
     def feat_trans(self, h, idx):
         h = super(GIPASMConv, self).feat_trans(h, idx)
