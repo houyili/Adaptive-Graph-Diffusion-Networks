@@ -1,6 +1,10 @@
 from models import AGDN, AGDNConv, EdgeAttentionLayer
 import torch.nn as nn
 
+class GIPAConv(AGDNConv):
+    pass
+
+
 class AGDN_MA(AGDN):
     def __init__(
             self,
