@@ -1,9 +1,6 @@
 from models import AGDN, AGDNConv, EdgeAttentionLayer
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from dgl import function as fn
-from dgl.ops import edge_softmax
 
 class GIPAConv(AGDNConv):
     def feat_trans(self, h, idx):

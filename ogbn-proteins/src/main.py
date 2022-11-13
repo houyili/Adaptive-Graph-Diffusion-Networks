@@ -2,19 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import datetime
-from operator import sub
 import os
 import sys
 import time
-from dgl.batch import batch
 
 import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
-from dgl.dataloading import (MultiLayerFullNeighborSampler,
-                             MultiLayerNeighborSampler)
+from dgl.dataloading import MultiLayerNeighborSampler
 from dgl.dataloading import NodeDataLoader
 from torch import nn
 
