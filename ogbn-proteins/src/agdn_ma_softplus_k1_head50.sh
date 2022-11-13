@@ -2,7 +2,7 @@ cd "$(dirname $0)"
 python -u ./main.py \
     --model agdn_ma \
     --sample-type random_cluster \
-    --train-partition-num 20 \
+    --train-partition-num 6 \
     --eval-partition-num 2 \
     --eval-times 1 \
     --lr 0.01 \
