@@ -12,7 +12,7 @@ python -u ./main.py \
     --n-layers 6 \
     --weight-style HC \
     --dropout 0.4 \
-    --n-hidden 5 \
+    --n-hidden 9 \
     --input-drop 0.1 \
     --attn-drop 0. \
     --hop-attn-drop 0. \
