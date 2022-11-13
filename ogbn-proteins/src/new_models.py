@@ -40,7 +40,7 @@ class AGDN_MA(AGDN):
         self.convs = nn.ModuleList()
         self.norms = nn.ModuleList()
 
-        self.node_encoder = nn.Linear(node_feats, n_heads)
+        self.node_encoder = nn.Linear(node_feats, 150)
         if edge_attention:
             self.pre_aggregator = EdgeAttentionLayer(edge_feats, n_heads)
         else:
@@ -55,7 +55,7 @@ class AGDN_MA(AGDN):
             self.edge_norms = nn.ModuleList()
 
         for i in range(n_layers):
-            in_hidden = n_heads * n_hidden if i > 0 else n_heads
+            in_hidden = n_heads * n_hidden if i > 0 else 150
             out_hidden = n_hidden
             # bias = i == n_layers - 1
 
