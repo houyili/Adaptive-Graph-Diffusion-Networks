@@ -1,4 +1,5 @@
 import random
+from time import sleep
 
 import dgl
 import dgl.function as fn
@@ -20,6 +21,7 @@ def seed(seed=0):
     torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+    sleep(2)
     dgl.random.seed(seed)
 
 def compute_norm(graph):
