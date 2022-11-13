@@ -91,3 +91,10 @@ def plot_stats(args, train_scores, val_scores, test_scores, losses, train_losses
     plt.legend()
     plt.tight_layout()
     plt.savefig(f"gat_loss_{n_running}.png")
+
+
+def print_msg_and_write(out_msg, log_f):
+    print(out_msg)
+    log_f.write(out_msg)
+    log_f.flush()
+

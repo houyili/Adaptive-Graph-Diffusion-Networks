@@ -1,27 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import dgl
 import argparse
-import datetime
-from operator import sub
+
 import os
 import sys
 import time
-from dgl.batch import batch
 
 import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
-from dgl.dataloading import (MultiLayerFullNeighborSampler,
-                             MultiLayerNeighborSampler)
+from dgl.dataloading import  MultiLayerNeighborSampler
 from dgl.dataloading import NodeDataLoader
 from torch import nn
 
 from data import load_data, preprocess
 from gen_model import count_parameters, gen_model
 from sampler import BatchSampler, DataLoaderWrapper, RandomPartitionSampler, ShaDowKHopSampler, random_partition_v2
-from utils import add_labels, plot_stats, seed, loge_BCE
+from utils import add_labels, plot_stats, seed, loge_BCE, print_msg_and_write
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 device = None
@@ -186,59 +183,23 @@ def evaluate(args, graph, model, dataloader, labels, train_idx, val_idx, test_id
         preds,
     )
 
-def _yi_jian_san_lian(out_msg, log_f):
-    print(out_msg)
-    log_f.write(out_msg)
-    log_f.flush()
-
 def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running, log_f):
     evaluator_wrapper = lambda pred, labels: evaluator.eval({"y_pred": pred, "y_true": labels})["rocauc"]
 
-    train_dataloader = None
-    eval_dataloader = None
-    if args.sample_type == "neighbor_sample":
+    train_dataloader, eval_dataloader = None, None
+
+    if args.sample_type == "neighbor_sample" or args.sample_type == "random_cluster":
+        real_layer = args.n_layers if args.model != "agdn" else args.n_layers * args.K
         train_batch_size = (len(train_idx) + args.train_partition_num - 1) // args.train_partition_num
-        # train_batch_size = 100
-        # batch_size = len(train_idx)
-        if args.model == "agdn" and args.sample_type=="neighbor_sample":
-            train_sampler = MultiLayerNeighborSampler([32 for _ in range(args.n_layers * args.K)])
-        elif args.model == "agdn" and args.sample_type=="khop_sample":
-            train_sampler = MultiLayerNeighborSampler([32 for _ in range(args.sampler_K)])
-        else:
-            train_sampler = MultiLayerNeighborSampler([32 for _ in range(args.n_layers)])
-        # sampler = MultiLayerFullNeighborSampler(args.n_layers)
-        train_dataloader = DataLoaderWrapper(
-            NodeDataLoader(
-                graph.cpu(),
-                train_idx.cpu(),
-                train_sampler,
-                batch_sampler=BatchSampler(len(train_idx), batch_size=train_batch_size),
-                num_workers=10,
-            )
-        )
+        train_sampler = MultiLayerNeighborSampler([32 for _ in range(real_layer)])
+        train_dataloader = dgl.dataloading.DataLoader(graph.cpu(), train_idx.cpu(),
+            train_sampler, batch_size=train_batch_size, shuffle=True, num_workers=8)
 
         eval_batch_size = (len(labels) + args.eval_partition_num - 1) // args.eval_partition_num
-        if args.model == "agdn" and args.sample_type=="neighbor_sample":
-            eval_sampler = MultiLayerNeighborSampler([100 for _ in range(args.n_layers * args.K)])
-        elif args.model == "agdn" and args.sample_type=="khop_sample":
-            eval_sampler = MultiLayerNeighborSampler([100 for _ in range(args.sampler_K)])
-        else:
-            eval_sampler = MultiLayerNeighborSampler([100 for _ in range(args.n_layers)])
-        # sampler = MultiLayerFullNeighborSampler(args.n_layers)
-        eval_dataloader = DataLoaderWrapper(
-            NodeDataLoader(
-                graph.cpu(),
-                torch.cat([train_idx.cpu(), val_idx.cpu(), test_idx.cpu()]),
-                eval_sampler,
-                batch_sampler=BatchSampler(graph.number_of_nodes(), batch_size=65536),
-                num_workers=10,
-            )
-        )
-    
-    if args.sample_type == "random_cluster":
-        pass
-        # train_dataloader = RandomPartition(args.train_partition_num, graph, shuffle=True)
-        # eval_dataloader = RandomPartition(args.eval_partition_num, graph, shuffle=False)
+        eval_sampler = MultiLayerNeighborSampler([100 for _ in range(real_layer)])
+        eval_dataloader = dgl.dataloading.DataLoader(graph.cpu(),
+                                                     torch.cat([train_idx.cpu(), val_idx.cpu(), test_idx.cpu()]),
+            eval_sampler, batch_size=eval_batch_size, shuffle=True, num_workers=8)
 
     if args.sample_type == "khop_sample":
         train_batch_size = (len(train_idx) + args.train_partition_num - 1) // args.train_partition_num
@@ -303,7 +264,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
                         f"Loss: {loss:.4f} Train/Val/Test loss: {train_loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n" \
                         f"Train/Val/Test: {train_score:.4f}/{val_score:.4f}/{test_score:.4f}\n"\
                         f"Best val/Final test score/Best Step: {best_val_score:.4f}/{final_test_score:.4f}/{best_step}\n"
-                _yi_jian_san_lian(out_msg, log_f)
+                print_msg_and_write(out_msg, log_f)
             for l, e in zip(
                 [train_scores, val_scores, test_scores, losses, train_losses, val_losses, test_losses],
                 [train_score, val_score, test_score, loss, train_loss, val_loss, test_loss],
@@ -314,7 +275,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
             lr_scheduler.step(val_score)
 
     out_msg = "*" * 50 + f"\nBest val score: {best_val_score}, Final test score: {final_test_score}\n" + "*" * 50 + "\n"
-    _yi_jian_san_lian(out_msg, log_f)
+    print_msg_and_write(out_msg, log_f)
 
     if args.plot:
         plot_stats(args, train_scores, val_scores, test_scores, losses, train_losses, val_losses, test_losses, n_running)

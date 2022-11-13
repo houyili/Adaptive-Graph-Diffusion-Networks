@@ -21,7 +21,7 @@ from torch import nn
 from data import load_data, preprocess
 from gen_model import count_parameters, gen_model
 from sampler import BatchSampler, DataLoaderWrapper, RandomPartitionSampler, ShaDowKHopSampler, random_partition_v2
-from utils import add_labels, plot_stats, seed, loge_BCE
+from utils import add_labels, plot_stats, seed, loge_BCE, print_msg_and_write
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 device = None
@@ -186,10 +186,6 @@ def evaluate(args, graph, model, dataloader, labels, train_idx, val_idx, test_id
         preds,
     )
 
-def _yi_jian_san_lian(out_msg, log_f):
-    print(out_msg)
-    log_f.write(out_msg)
-    log_f.flush()
 
 def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running, log_f):
     evaluator_wrapper = lambda pred, labels: evaluator.eval({"y_pred": pred, "y_true": labels})["rocauc"]
@@ -303,7 +299,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
                         f"Loss: {loss:.4f} Train/Val/Test loss: {train_loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n" \
                         f"Train/Val/Test: {train_score:.4f}/{val_score:.4f}/{test_score:.4f}\n"\
                         f"Best val/Final test score/Best Step: {best_val_score:.4f}/{final_test_score:.4f}/{best_step}\n"
-                _yi_jian_san_lian(out_msg, log_f)
+                print_msg_and_write(out_msg, log_f)
             for l, e in zip(
                 [train_scores, val_scores, test_scores, losses, train_losses, val_losses, test_losses],
                 [train_score, val_score, test_score, loss, train_loss, val_loss, test_loss],
@@ -314,7 +310,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
             lr_scheduler.step(val_score)
 
     out_msg = "*" * 50 + f"\nBest val score: {best_val_score}, Final test score: {final_test_score}\n" + "*" * 50 + "\n"
-    _yi_jian_san_lian(out_msg, log_f)
+    print_msg_and_write(out_msg, log_f)
 
     if args.plot:
         plot_stats(args, train_scores, val_scores, test_scores, losses, train_losses, val_losses, test_losses, n_running)
