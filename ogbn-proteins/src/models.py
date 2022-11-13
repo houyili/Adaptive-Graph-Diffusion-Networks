@@ -331,6 +331,7 @@ class AGDNConv(nn.Module):
             self.weights = nn.Parameter(torch.FloatTensor(size=(1, n_heads, K, out_feats)))
 
         print("The new parameter are %s,%s,%s" %(self._batch_norm, edge_att_act, self.edge_agg_mode))
+        print("Init %s" % (self.__name__))
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -361,6 +362,7 @@ class AGDNConv(nn.Module):
 
         if self.bias is not None:
             nn.init.zeros_(self.bias)
+        return gain
 
     def set_allow_zero_in_degree(self, set_value):
         self._allow_zero_in_degree = set_value
@@ -563,6 +565,7 @@ class AGDN(nn.Module):
         self.input_drop = nn.Dropout(input_drop)
         self.dropout = nn.Dropout(dropout)
         self.activation = activation
+        print("Init %s" % (self.__name__))
 
     def forward(self, g):
         if not isinstance(g, list):

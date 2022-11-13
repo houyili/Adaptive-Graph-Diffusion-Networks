@@ -2,7 +2,7 @@ import numpy as np
 import torch.nn.functional as F
 
 from models import GAT, AGDN
-from new_models import AGDN_MA, AGDN_SM
+from new_models import AGDN_MA, AGDN_SM, GIPASMConv, AGDNSMConv
 
 
 def gen_model(args, n_node_feats, n_edge_feats, n_classes):
@@ -82,7 +82,8 @@ def gen_model(args, n_node_feats, n_edge_feats, n_classes):
             edge_att_act=args.edge_att_act, edge_agg_mode=args.edge_agg_mode
         )
 
-    if args.model == "agdn_sm":
+    if args.model == "agdn_sm" or args.model == "gipa_sm":
+        kernel = AGDNSMConv if args.model == "agdn_sm" else GIPASMConv
         model = AGDN_SM(
             n_node_feats_,
             n_edge_feats,
@@ -104,7 +105,8 @@ def gen_model(args, n_node_feats, n_edge_feats, n_classes):
             use_labels=args.use_labels,
             weight_style=args.weight_style,
             batch_norm=not args.disable_fea_trans_norm,
-            edge_att_act=args.edge_att_act, edge_agg_mode=args.edge_agg_mode
+            edge_att_act=args.edge_att_act, edge_agg_mode=args.edge_agg_mode,
+            conv_kernel=kernel
         )
 
     return model

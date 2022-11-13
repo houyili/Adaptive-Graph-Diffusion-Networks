@@ -10,6 +10,38 @@ class AGDNSMConv(AGDNConv):
             h = (h - mean) * self.scale[idx] * torch.rsqrt(var) + self.offset[idx]
         return h
 
+class GIPASMConv(AGDNSMConv):
+    def __init__(self,node_feats,
+        edge_feats,
+        out_feats,
+        n_heads=1,
+        K=3,
+        attn_drop=0.0,
+        hop_attn_drop=0.0,
+        edge_drop=0.0,
+        negative_slope=0.2,
+        residual=True,
+        activation=None,
+        use_attn_dst=True,
+        allow_zero_in_degree=True,
+        norm="none",
+        batch_norm=True,
+        weight_style="HA", edge_att_act="leaky_relu", edge_agg_mode="both_softmax"):
+        super(GIPASMConv, self).__init__(node_feats, edge_feats, out_feats, n_heads,
+        K, attn_drop, hop_attn_drop, edge_drop, negative_slope, residual, activation, use_attn_dst,
+        allow_zero_in_degree, norm, batch_norm, weight_style, edge_att_act, edge_agg_mode)
+        self.agg_fc = nn.Linear(self._in_src_feats, out_feats * n_heads)
+
+    def reset_parameters(self):
+        gain = super(GIPASMConv, self).reset_parameters()
+        if self.agg_fc is not None:
+            nn.init.xavier_normal_(self.agg_fc.weight, gain=gain)
+            print("Reset %s" % (self.__name__))
+
+    def feat_trans(self, h, idx):
+        h = super(GIPASMConv, self).feat_trans(h, idx)
+        return self.agg_fc(h) if self.agg_fc is not None else h
+
 
 class AGDN_MA(AGDN):
     def __init__(
@@ -98,7 +130,6 @@ class AGDN_MA(AGDN):
         self.dropout = nn.Dropout(dropout)
         self.activation = activation
 
-
 class AGDN_SM(AGDN):
     def __init__(
             self,
@@ -122,7 +153,8 @@ class AGDN_SM(AGDN):
             use_one_hot=False,
             use_labels=False,
             edge_attention=False,
-            weight_style="HA", batch_norm=True, edge_att_act="leaky_relu", edge_agg_mode="both_softmax"
+            weight_style="HA",
+            batch_norm=True, edge_att_act="leaky_relu", edge_agg_mode="both_softmax", conv_kernel=AGDNSMConv
     ):
         super(AGDN, self).__init__()
         self.n_layers = n_layers
@@ -155,7 +187,7 @@ class AGDN_SM(AGDN):
                 self.edge_encoder.append(nn.Linear(edge_feats, edge_emb))
                 self.edge_norms.append(nn.BatchNorm1d(edge_emb))
             self.convs.append(
-                AGDNSMConv(
+                conv_kernel(
                     in_hidden,
                     edge_emb,
                     out_hidden,
