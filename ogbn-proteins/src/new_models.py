@@ -27,13 +27,14 @@ class GIPASMConv(AGDNSMConv):
         norm="none",
         batch_norm=True,
         weight_style="HA", edge_att_act="leaky_relu", edge_agg_mode="both_softmax"):
-        self.agg_fc = nn.Linear(node_feats, out_feats * n_heads)
         super(GIPASMConv, self).__init__(node_feats, edge_feats, out_feats, n_heads,
         K, attn_drop, hop_attn_drop, edge_drop, negative_slope, residual, activation, use_attn_dst,
         allow_zero_in_degree, norm, batch_norm, weight_style, edge_att_act, edge_agg_mode)
+        self.agg_fc = nn.Linear(out_feats * n_heads, out_feats * n_heads)
+        self.reset_other_parameters()
 
-    def reset_parameters(self):
-        gain = super(GIPASMConv, self).reset_parameters()
+    def reset_other_parameters(self):
+        gain = nn.init.calculate_gain("relu")
         nn.init.xavier_normal_(self.agg_fc.weight, gain=gain)
         print("Reset %s" % str(self.agg_fc.__class__))
 
