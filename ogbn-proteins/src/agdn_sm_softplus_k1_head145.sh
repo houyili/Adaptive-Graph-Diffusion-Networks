@@ -3,12 +3,12 @@ python -u ./main.py \
     --model agdn_sm \
     --sample-type random_cluster \
     --train-partition-num 6 \
-    --eval-partition-num 4 \
-    --eval-times 2 \
+    --eval-partition-num 3 \
+    --eval-times 1 \
     --lr 0.01 \
     --advanced-optimizer \
     --n-epochs 1500 \
-    --n-heads 145 \
+    --n-heads 140 \
     --n-layers 6 \
     --weight-style sum \
     --dropout 0.4 \
@@ -19,4 +19,4 @@ python -u ./main.py \
     --edge-drop 0.1 \
     --norm none \
     --K 1 --edge-agg-mode "none_softmax" --edge-att-act="softplus" --norm="avg"\
-    --gpu 3 --root "/data/ogb/datasets/" --log-file-name="agdn_sm_softplus_k1_head145"
+    --gpu 5 --root "/data/ogb/datasets/" --log-file-name="agdn_sm_softplus_k1_head145"
