@@ -3,12 +3,12 @@ python -u ./main.py \
     --model agdn_sm \
     --sample-type random_cluster \
     --train-partition-num 6 \
-    --eval-partition-num 4 \
-    --eval-times 2 \
+    --eval-partition-num 3 \
+    --eval-times 1 \
     --lr 0.01 \
     --advanced-optimizer \
     --n-epochs 1500 \
-    --n-heads 145 \
+    --n-heads 125 \
     --n-layers 6 \
     --weight-style sum \
     --dropout 0.4 \
