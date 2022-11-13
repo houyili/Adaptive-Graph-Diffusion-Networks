@@ -285,7 +285,8 @@ class AGDNConv(nn.Module):
         self._batch_norm = batch_norm
         self._K = K
         self._weight_style = weight_style
-        self.edge_agg_mode = edge_agg_mode
+        self._edge_agg_mode = edge_agg_mode
+        self._edge_att_act = edge_att_act
 
         # feat fc
         self.src_fc = nn.Linear(self._in_src_feats, out_feats * n_heads, bias=False)
@@ -330,7 +331,7 @@ class AGDNConv(nn.Module):
         if weight_style == "HC":
             self.weights = nn.Parameter(torch.FloatTensor(size=(1, n_heads, K, out_feats)))
 
-        print("The new parameter are %s,%s,%s" %(self._batch_norm, edge_att_act, self.edge_agg_mode))
+        print("The new parameter are %s,%s,%s" % (self._batch_norm, edge_att_act, self._edge_agg_mode))
         print("Init %s" % str(self.__class__))
         self.reset_parameters()
 
@@ -362,7 +363,6 @@ class AGDNConv(nn.Module):
 
         if self.bias is not None:
             nn.init.zeros_(self.bias)
-        return gain
 
     def set_allow_zero_in_degree(self, set_value):
         self._allow_zero_in_degree = set_value
@@ -427,11 +427,11 @@ class AGDNConv(nn.Module):
                 eids = torch.arange(graph.number_of_edges(), device=e.device)
             graph.edata["a"] = torch.zeros_like(e)
 
-            if self.edge_agg_mode == "both_softmax":
+            if self._edge_agg_mode == "both_softmax":
                 graph.edata["a"][eids] = self.attn_drop(torch.sqrt(
                     edge_softmax(graph, e[eids], eids=eids, norm_by='dst').clamp(min=1e-9)
                     * edge_softmax(graph, e[eids], eids=eids, norm_by='src').clamp(min=1e-9)))
-            elif self.edge_agg_mode == "single_softmax":
+            elif self._edge_agg_mode == "single_softmax":
                 graph.edata["a"][eids] = self.attn_drop((edge_softmax(graph, e[eids], eids=eids, norm_by='dst')))
             else:
                 graph.edata["a"][eids] = self.attn_drop(e[eids])
