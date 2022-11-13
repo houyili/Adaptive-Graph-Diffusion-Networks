@@ -19,4 +19,4 @@ python -u ./main.py \
     --edge-drop 0.1 \
     --norm none \
     --K 2 \
-    --gpu 2 --root "/home/lihouyi/ogb/datasets/" --log-file-name="origin"
+    --gpu 0 --root "/home/lihouyi/ogb/dataset/" --log-file-name="origin_train_part_20"

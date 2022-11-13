@@ -8,11 +8,11 @@ python -u ./main.py \
     --lr 0.01 \
     --advanced-optimizer \
     --n-epochs 1500 \
-    --n-heads 100 \
+    --n-heads 50 \
     --n-layers 6 \
     --weight-style HC \
     --dropout 0.4 \
-    --n-hidden 4 \
+    --n-hidden 10 \
     --input-drop 0.1 \
     --attn-drop 0. \
     --hop-attn-drop 0. \
