@@ -3,8 +3,8 @@ python -u ./main.py \
     --model agdn \
     --sample-type random_cluster \
     --train-partition-num 6 \
-    --eval-partition-num 4 \
-    --eval-times 2 \
+    --eval-partition-num 3 \
+    --eval-times 1 \
     --lr 0.01 \
     --advanced-optimizer \
     --n-epochs 1500 \
@@ -19,4 +19,4 @@ python -u ./main.py \
     --edge-drop 0.1 \
     --norm none \
     --K 1 \
-    --gpu 4 --root "/data/ogb/datasets/" --log-file-name="k1_eval4_t2" --n-runs=5
+    --gpu 2 --root "/data/ogb/datasets/" --log-file-name="k1_eval3" --n-runs=5
