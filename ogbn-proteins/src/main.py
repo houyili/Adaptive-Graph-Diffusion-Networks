@@ -7,6 +7,7 @@ import sys
 import time
 
 import numpy as np
+import dgl
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
