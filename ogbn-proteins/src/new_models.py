@@ -40,7 +40,7 @@ class GIPASMConv(AGDNSMConv):
 
     def feat_trans(self, h, idx):
         h = super(GIPASMConv, self).feat_trans(h, idx)
-        return self.agg_fc(h) if self.agg_fcelse!=None else h
+        return self.agg_fc(h) if self.agg_fc !=None else h
 
 
 class AGDN_MA(AGDN):
