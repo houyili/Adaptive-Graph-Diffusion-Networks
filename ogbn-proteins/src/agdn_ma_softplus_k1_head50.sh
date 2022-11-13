@@ -2,13 +2,13 @@ cd "$(dirname $0)"
 python -u ./main.py \
     --model agdn_ma \
     --sample-type random_cluster \
-    --train-partition-num 6 \
+    --train-partition-num 10 \
     --eval-partition-num 2 \
     --eval-times 1 \
     --lr 0.01 \
     --advanced-optimizer \
     --n-epochs 1500 \
-    --n-heads 50 \
+    --n-heads 60 \
     --n-layers 6 \
     --weight-style HC \
     --dropout 0.4 \
