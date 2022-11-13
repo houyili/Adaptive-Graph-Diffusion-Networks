@@ -405,7 +405,7 @@ def main():
         log_f.write(args.__str__() + "\n" + title_msg)
         log_f.flush()
         print("Running", i)
-        dgl.random.seed(args.seed + i)
+        # dgl.random.seed(args.seed + i)
         seed(args.seed + i)
         val_score, test_score = run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, i + 1, log_f)
         val_scores.append(val_score)
