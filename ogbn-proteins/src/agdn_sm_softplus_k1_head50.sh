@@ -19,4 +19,4 @@ python -u ./main.py \
     --edge-drop 0.1 \
     --norm none \
     --K 1 --edge-agg-mode "none_softmax" --edge-att-act="softplus" --norm="avg"\
-    --gpu 3 --root "/data/ogb/datasets/" --log-file-name="agdn_sm_softplus_k1_head100"
+    --gpu 3 --root "/data/ogb/datasets/" --log-file-name="agdn_sm_softplus_k1_head50"
