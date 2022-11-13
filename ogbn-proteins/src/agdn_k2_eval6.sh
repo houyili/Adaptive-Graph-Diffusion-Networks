@@ -4,7 +4,7 @@ python -u ./main.py \
     --sample-type random_cluster \
     --train-partition-num 6 \
     --eval-partition-num 6 \
-    --eval-times 1 \
+    --eval-times 4 \
     --lr 0.01 \
     --advanced-optimizer \
     --n-epochs 1500 \
@@ -19,4 +19,4 @@ python -u ./main.py \
     --edge-drop 0.1 \
     --norm none \
     --K 2 \
-    --gpu 1 --root "/data/ogb/datasets/" --log-file-name="origin_eval6"
+    --gpu 1 --root "/data/ogb/datasets/" --log-file-name="origin_eval6" --n-runs=5
