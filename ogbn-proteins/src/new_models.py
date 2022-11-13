@@ -1,8 +1,17 @@
 from models import AGDN, AGDNConv, EdgeAttentionLayer
+import torch
 import torch.nn as nn
+import torch.nn.functional as F
+from dgl import function as fn
+from dgl.ops import edge_softmax
 
 class GIPAConv(AGDNConv):
-    pass
+    def feat_trans(self, h, idx):
+        if self._batch_norm:
+            mean = h.mean(dim=-1).view(h.shape[0], self._n_heads, 1)
+            var = h.var(dim=-1, unbiased=False).view(h.shape[0], self._n_heads, 1) + 1e-9
+            h = (h - mean) * self.scale[idx] * torch.rsqrt(var) + self.offset[idx]
+        return h
 
 
 class AGDN_MA(AGDN):
