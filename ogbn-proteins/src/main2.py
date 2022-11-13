@@ -1,20 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import dgl
 import argparse
-import datetime
-from operator import sub
+
 import os
 import sys
 import time
-from dgl.batch import batch
 
 import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
-from dgl.dataloading import (MultiLayerFullNeighborSampler,
-                             MultiLayerNeighborSampler)
+from dgl.dataloading import  MultiLayerNeighborSampler
 from dgl.dataloading import NodeDataLoader
 from torch import nn
 
@@ -186,55 +183,23 @@ def evaluate(args, graph, model, dataloader, labels, train_idx, val_idx, test_id
         preds,
     )
 
-
 def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running, log_f):
     evaluator_wrapper = lambda pred, labels: evaluator.eval({"y_pred": pred, "y_true": labels})["rocauc"]
 
-    train_dataloader = None
-    eval_dataloader = None
-    if args.sample_type == "neighbor_sample":
+    train_dataloader, eval_dataloader = None, None
+
+    if args.sample_type == "neighbor_sample" or args.sample_type == "random_cluster":
+        real_layer = args.n_layers if args.model != "agdn" else args.n_layers * args.K
         train_batch_size = (len(train_idx) + args.train_partition_num - 1) // args.train_partition_num
-        # train_batch_size = 100
-        # batch_size = len(train_idx)
-        if args.model == "agdn" and args.sample_type=="neighbor_sample":
-            train_sampler = MultiLayerNeighborSampler([32 for _ in range(args.n_layers * args.K)])
-        elif args.model == "agdn" and args.sample_type=="khop_sample":
-            train_sampler = MultiLayerNeighborSampler([32 for _ in range(args.sampler_K)])
-        else:
-            train_sampler = MultiLayerNeighborSampler([32 for _ in range(args.n_layers)])
-        # sampler = MultiLayerFullNeighborSampler(args.n_layers)
-        train_dataloader = DataLoaderWrapper(
-            NodeDataLoader(
-                graph.cpu(),
-                train_idx.cpu(),
-                train_sampler,
-                batch_sampler=BatchSampler(len(train_idx), batch_size=train_batch_size),
-                num_workers=10,
-            )
-        )
+        train_sampler = MultiLayerNeighborSampler([32 for _ in range(real_layer)])
+        train_dataloader = dgl.dataloading.DataLoader(graph.cpu(), train_idx.cpu(),
+            train_sampler, batch_size=train_batch_size, shuffle=True, num_workers=8)
 
         eval_batch_size = (len(labels) + args.eval_partition_num - 1) // args.eval_partition_num
-        if args.model == "agdn" and args.sample_type=="neighbor_sample":
-            eval_sampler = MultiLayerNeighborSampler([100 for _ in range(args.n_layers * args.K)])
-        elif args.model == "agdn" and args.sample_type=="khop_sample":
-            eval_sampler = MultiLayerNeighborSampler([100 for _ in range(args.sampler_K)])
-        else:
-            eval_sampler = MultiLayerNeighborSampler([100 for _ in range(args.n_layers)])
-        # sampler = MultiLayerFullNeighborSampler(args.n_layers)
-        eval_dataloader = DataLoaderWrapper(
-            NodeDataLoader(
-                graph.cpu(),
-                torch.cat([train_idx.cpu(), val_idx.cpu(), test_idx.cpu()]),
-                eval_sampler,
-                batch_sampler=BatchSampler(graph.number_of_nodes(), batch_size=65536),
-                num_workers=10,
-            )
-        )
-    
-    if args.sample_type == "random_cluster":
-        pass
-        # train_dataloader = RandomPartition(args.train_partition_num, graph, shuffle=True)
-        # eval_dataloader = RandomPartition(args.eval_partition_num, graph, shuffle=False)
+        eval_sampler = MultiLayerNeighborSampler([100 for _ in range(real_layer)])
+        eval_dataloader = dgl.dataloading.DataLoader(graph.cpu(),
+                                                     torch.cat([train_idx.cpu(), val_idx.cpu(), test_idx.cpu()]),
+            eval_sampler, batch_size=eval_batch_size, shuffle=True, num_workers=8)
 
     if args.sample_type == "khop_sample":
         train_batch_size = (len(train_idx) + args.train_partition_num - 1) // args.train_partition_num
