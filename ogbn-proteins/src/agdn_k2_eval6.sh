@@ -19,4 +19,4 @@ python -u ./main.py \
     --edge-drop 0.1 \
     --norm none \
     --K 2 \
-    --gpu 2 --root "/data/ogb/datasets/" --log-file-name="origin_eval6"
+    --gpu 1 --root "/data/ogb/datasets/" --log-file-name="origin_eval6"
