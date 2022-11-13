@@ -340,7 +340,7 @@ def main():
     argparser.add_argument("--n-epochs", type=int, default=1200, help="number of epochs")
     argparser.add_argument("--eval-times", type=int, default=1)
     argparser.add_argument("--advanced-optimizer", action="store_true")
-    argparser.add_argument("--model", type=str, default="agdn", choices=["gat", "agdn"])
+    argparser.add_argument("--model", type=str, default="agdn", choices=["gat", "agdn", "agdn_ma"])
     argparser.add_argument("--use-one-hot-feature", action="store_true")
     argparser.add_argument("--sample-type", type=str, default="random_cluster", 
         choices=["neighbor_sample", "random_cluster", "khop_sample"])
