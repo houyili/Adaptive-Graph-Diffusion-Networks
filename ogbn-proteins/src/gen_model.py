@@ -2,7 +2,7 @@ import numpy as np
 import torch.nn.functional as F
 
 from models import GAT, AGDN
-from new_models import AGDN_MA
+from new_models import AGDN_MA, AGDN_SM
 
 
 def gen_model(args, n_node_feats, n_edge_feats, n_classes):
@@ -59,6 +59,31 @@ def gen_model(args, n_node_feats, n_edge_feats, n_classes):
 
     if args.model == "agdn_ma":
         model = AGDN_MA(
+            n_node_feats_,
+            n_edge_feats,
+            n_classes,
+            n_layers=args.n_layers,
+            n_heads=args.n_heads,
+            n_hidden=args.n_hidden,
+            edge_emb=16,
+            activation=F.relu,
+            dropout=args.dropout,
+            input_drop=args.input_drop,
+            attn_drop=args.attn_drop,
+            hop_attn_drop=args.hop_attn_drop,
+            edge_drop=args.edge_drop,
+            K=args.K,
+            use_attn_dst=not args.no_attn_dst,
+            norm=args.norm,
+            use_one_hot=args.use_one_hot_feature,
+            use_labels=args.use_labels,
+            weight_style=args.weight_style,
+            batch_norm=not args.disable_fea_trans_norm,
+            edge_att_act=args.edge_att_act, edge_agg_mode=args.edge_agg_mode
+        )
+
+    if args.model == "agdn_sm":
+        model = AGDN_SM(
             n_node_feats_,
             n_edge_feats,
             n_classes,
