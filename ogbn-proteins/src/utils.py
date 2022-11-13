@@ -14,7 +14,7 @@ from gen_model import gen_model
 
 def seed(seed=0):
     random.seed(seed)
-    dgl.random.seed(seed)
+    # dgl.random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
