@@ -27,7 +27,7 @@ class GIPASMConv(AGDNSMConv):
         norm="none",
         batch_norm=True,
         weight_style="HA", edge_att_act="leaky_relu", edge_agg_mode="both_softmax"):
-        self.agg_fc = nn.Linear(self._in_src_feats, out_feats * n_heads)
+        self.agg_fc = nn.Linear(node_feats, out_feats * n_heads)
         super(GIPASMConv, self).__init__(node_feats, edge_feats, out_feats, n_heads,
         K, attn_drop, hop_attn_drop, edge_drop, negative_slope, residual, activation, use_attn_dst,
         allow_zero_in_degree, norm, batch_norm, weight_style, edge_att_act, edge_agg_mode)
