@@ -142,10 +142,8 @@ def evaluate(args, graph, model, dataloader, labels, train_idx, val_idx, test_id
 
     for _ in range(args.eval_times):
 
-        if args.sample_type == "neighbor_sample":
+        if args.sample_type in ["neighbor_sample","random_cluster"]:
             for input_nodes, output_nodes, subgraphs in dataloader:
-                for b in subgraphs:
-                    b.ndata["l"] = b.ndata["l_global"]
                 subgraphs = [b.to(device) for b in subgraphs]
                 new_train_idx = list(range(len(input_nodes)))
 
@@ -155,7 +153,7 @@ def evaluate(args, graph, model, dataloader, labels, train_idx, val_idx, test_id
                 pred = model(subgraphs)
                 preds[output_nodes] += pred
 
-        if args.sample_type in ["random_cluster", "khop_sample"]:
+        if args.sample_type == "khop_sample":
             for batch_nodes, subgraph in random_partition_v2(args.eval_partition_num, graph, shuffle=False):
                 subgraph = subgraph.to(device)
                 new_train_idx = torch.arange(len(batch_nodes))
@@ -169,7 +167,7 @@ def evaluate(args, graph, model, dataloader, labels, train_idx, val_idx, test_id
 
     preds /= args.eval_times
 
-    train_loss = criterion(preds[train_idx], labels[train_idx].float()).item()
+    # train_loss = criterion(preds[train_idx], labels[train_idx].float()).item()
     val_loss = criterion(preds[val_idx], labels[val_idx].float()).item()
     test_loss = criterion(preds[test_idx], labels[test_idx].float()).item()
 
@@ -177,7 +175,7 @@ def evaluate(args, graph, model, dataloader, labels, train_idx, val_idx, test_id
         evaluator(preds[train_idx], labels[train_idx]),
         evaluator(preds[val_idx], labels[val_idx]),
         evaluator(preds[test_idx], labels[test_idx]),
-        train_loss,
+        0,
         val_loss,
         test_loss,
         preds,
@@ -197,9 +195,9 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
 
         eval_batch_size = (len(labels) + args.eval_partition_num - 1) // args.eval_partition_num
         eval_sampler = MultiLayerNeighborSampler([100 for _ in range(real_layer)])
-        eval_dataloader = dgl.dataloading.DataLoader(graph.cpu(),
-                                                     torch.cat([train_idx.cpu(), val_idx.cpu(), test_idx.cpu()]),
-            eval_sampler, batch_size=eval_batch_size, shuffle=True, num_workers=8)
+        eval_dataloader = dgl.dataloading.DataLoader(
+                                            graph.cpu(),torch.cat([train_idx.cpu(), val_idx.cpu(), test_idx.cpu()]),
+                                            eval_sampler, batch_size=eval_batch_size, shuffle=True, num_workers=8)
 
     if args.sample_type == "khop_sample":
         train_batch_size = (len(train_idx) + args.train_partition_num - 1) // args.train_partition_num
