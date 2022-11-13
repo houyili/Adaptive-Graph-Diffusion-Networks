@@ -442,7 +442,8 @@ class AGDNConv(nn.Module):
                 graph.edata["a"][eids] = (graph.edata["a"][eids] + graph.edata["gcn_norm"][eids].view(-1, 1, 1)) / 2
 
             # message passing
-            h_0 = self.feat_trans(graph.dstdata["feat_src_fc"], 0)
+            if self._weight_style == "HA":
+                h_0 = self.feat_trans(graph.dstdata["feat_src_fc"], 0)
             hstack = []
             for k in range(self._K):
                 graph.update_all(fn.u_mul_e("feat_src_fc", "a", "m"), fn.sum("m", "feat_src_fc"))
