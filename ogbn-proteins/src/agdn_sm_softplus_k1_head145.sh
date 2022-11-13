@@ -4,7 +4,7 @@ python -u ./main.py \
     --sample-type random_cluster \
     --train-partition-num 6 \
     --eval-partition-num 4 \
-    --eval-times 3 \
+    --eval-times 2 \
     --lr 0.01 \
     --advanced-optimizer \
     --n-epochs 1500 \
