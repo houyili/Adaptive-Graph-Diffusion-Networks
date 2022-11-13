@@ -26,11 +26,11 @@ class AGDN_MA(AGDN):
             edge_attention=False,
             weight_style="HA", batch_norm=True, edge_att_act="leaky_relu", edge_agg_mode="both_softmax"
     ):
-        super(GIPA, self).__init__(node_feats, edge_feats,
-            n_classes, n_layers, n_heads, n_hidden, edge_emb, activation, dropout, input_drop,
-            attn_drop, hop_attn_drop, edge_drop, K, use_attn_dst, allow_zero_in_degree,
-            norm, use_one_hot, use_labels, edge_attention,
-            weight_style, batch_norm, edge_att_act, edge_agg_mode)
+        # super(GIPA, self).__init__(node_feats, edge_feats,
+        #     n_classes, n_layers, n_heads, n_hidden, edge_emb, activation, dropout, input_drop,
+        #     attn_drop, hop_attn_drop, edge_drop, K, use_attn_dst, allow_zero_in_degree,
+        #     norm, use_one_hot, use_labels, edge_attention,
+        #     weight_style, batch_norm, edge_att_act, edge_agg_mode)
         super(AGDN, self).__init__()
         self.n_layers = n_layers
         self.n_heads = n_heads
