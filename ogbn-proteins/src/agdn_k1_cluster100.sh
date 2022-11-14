@@ -21,4 +21,4 @@ python -u ./mainc.py \
     --edge-drop 0.1 \
     --norm none \
     --K 1 \
-    --gpu 4 --root "/data/ogb/datasets/" --log-file-name="k1_m_cluster100" --n-runs=5
+    --gpu 0 --root "/data/ogb/datasets/" --log-file-name="k1_m_cluster100" --n-runs=5
