@@ -16,9 +16,9 @@ from dgl.dataloading import NodeDataLoader
 from torch import nn
 
 from data import load_data, preprocess
-from gen_model import count_parameters, gen_model
+from gen_model import count_parameters, gen_model, MODEL_LIST
 from sampler import BatchSampler, DataLoaderWrapper, RandomPartitionSampler, ShaDowKHopSampler, random_partition_v2
-from utils import add_labels, plot_stats, seed, loge_BCE, print_msg_and_write
+from utils import add_labels, seed, loge_BCE, print_msg_and_write
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 device = None
@@ -310,6 +310,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
     print_msg_and_write(out_msg, log_f)
 
     if args.plot:
+        from plot_unit import plot_stats
         plot_stats(args, train_scores, val_scores, test_scores, losses, train_losses, val_losses, test_losses, n_running)
 
     if args.save_pred:
@@ -333,7 +334,7 @@ def main():
     argparser.add_argument("--n-epochs", type=int, default=1200, help="number of epochs")
     argparser.add_argument("--eval-times", type=int, default=1)
     argparser.add_argument("--advanced-optimizer", action="store_true")
-    argparser.add_argument("--model", type=str, default="agdn", choices=["gat", "agdn", "agdn_ma", "agdn_sm", "gipa_sm"])
+    argparser.add_argument("--model", type=str, default="agdn", choices=MODEL_LIST)
     argparser.add_argument("--use-one-hot-feature", action="store_true")
     argparser.add_argument("--sample-type", type=str, default="random_cluster", 
         choices=["neighbor_sample", "random_cluster", "khop_sample"])
@@ -379,7 +380,7 @@ def main():
 
     # load data & preprocess
     print("Loading data")
-    graph, labels, train_idx, val_idx, test_idx, evaluator = load_data(dataset, args)
+    graph, labels, train_idx, val_idx, test_idx, evaluator = load_data(dataset, args.root)
     print("Preprocessing")
     graph, labels = preprocess(graph, labels, train_idx, n_classes)
     if args.use_one_hot_feature:

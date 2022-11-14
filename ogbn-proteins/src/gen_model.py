@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from models import GAT, AGDN
 from new_models import AGDN_MA, AGDN_SM, GIPASMConv, AGDNSMConv
 
+MODEL_LIST = ["gat", "agdn", "agdn_ma", "agdn_sm", "gipa_sm"]
 
 def gen_model(args, n_node_feats, n_edge_feats, n_classes):
     if args.use_labels:
