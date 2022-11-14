@@ -3,8 +3,8 @@ cd "$(dirname $0)"
 python -u ./mainc.py \
     --model agdn \
     --sample-type m_cluster \
-    --train-partition-num 10 \
-    --sampler-K 1\
+    --train-partition-num 100 \
+    --sampler-K 5\
     --eval-partition-num 10 \
     --eval-times 1 \
     --lr 0.01 \
