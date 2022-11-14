@@ -24,6 +24,7 @@ def load_data(dataset, root_path):
 def preprocess(graph, labels, train_idx, n_classes, edge_agg_as_feat=True, one_hot_feat=True, user_label=True,
                user_adj=True, user_avg=True, val_idx=None, test_idx=None):
 
+    graph.ndata["NID"] = torch.arange(graph.num_nodes())
     train_mask = torch.zeros(size=(graph.num_nodes(),1), dtype=torch.bool)
     train_mask[train_idx] = True
     graph.ndata["train_mask"] = train_mask

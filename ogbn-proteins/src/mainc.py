@@ -129,16 +129,13 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
     if args.sample_type == "m_cluster":
         for subgraph in dataloader:
             subgraph = subgraph.to(device)
-            train_pred_idx = subgraph.ndata['_ID']
-            inner_train_mask = np.isin(train_pred_idx.cpu(), _train_idx.cpu())
-            train_train_idx = train_pred_idx[inner_train_mask]
             pred = model(subgraph)
-            loss = criterion(pred[train_train_idx], subgraph.ndata["labels"][train_train_idx].float())
+            loss = criterion(pred[subgraph["train_mask"]], subgraph.ndata["labels"][subgraph["train_mask"]].float())
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-            count = len(train_pred_idx)
+            count = torch.count_nonzero(subgraph["train_mask"]).item()
             loss_sum += loss.item() * count
             total += count
 
@@ -178,6 +175,16 @@ def evaluate(args, graph, model, dataloader, labels, train_idx, val_idx, test_id
 
                 pred = model(subgraph)
                 preds[batch_nodes] += pred
+
+        if args.sample_type == "m_cluster":
+            for subgraph in dataloader:
+                subgraph = subgraph.to(device)
+
+                if args.use_labels:
+                    add_labels(subgraph, subgraph.ndata["train_mask"], n_classes, device)
+
+                pred = model(subgraph)
+                preds[subgraph.ndata["NID"]] += pred
 
     preds /= args.eval_times
 
@@ -241,7 +248,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
         train_dataloader = dgl.dataloading.DataLoader(graph.cpu(), torch.arange(args.train_partition_num), train_sampler,
                                                       batch_size=1, shuffle=True, drop_last=False, num_workers=8)
         eval_dataloader = dgl.dataloading.DataLoader(graph.cpu(), torch.arange(args.eval_partition_num), eval_sampler,
-                                                      batch_size=1, shuffle=True, drop_last=False, num_workers=8)
+                                                      batch_size=1, shuffle=False, drop_last=False, num_workers=8)
 
     criterion = nn.BCEWithLogitsLoss()
 
