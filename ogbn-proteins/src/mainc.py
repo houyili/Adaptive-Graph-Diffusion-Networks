@@ -334,7 +334,7 @@ def main():
     argparser.add_argument("--model", type=str, default="agdn", choices=MODEL_LIST)
     argparser.add_argument("--use-one-hot-feature", action="store_true")
     argparser.add_argument("--sample-type", type=str, default="random_cluster", 
-        choices=["neighbor_sample", "random_cluster", "khop_sample"])
+        choices=["neighbor_sample", "random_cluster", "khop_sample", "m_cluster"])
     argparser.add_argument("--train-partition-num", type=int, default=10, 
         help="number of partitions for training, which only takes effect when sample_type==random_cluster")
     argparser.add_argument("--eval-partition-num", type=int, default=3, 
