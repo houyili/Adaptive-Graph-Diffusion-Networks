@@ -277,15 +277,17 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
     for epoch in range(1, args.n_epochs + 1):
         tic = time.time()
 
-        loss = train(args, graph, model, train_dataloader, labels, train_idx, val_idx, test_idx, criterion, optimizer, evaluator_wrapper)
+        with train_dataloader.enable_cpu_affinity():
+            loss = train(args, graph, model, train_dataloader, labels, train_idx, val_idx, test_idx, criterion,
+                         optimizer, evaluator_wrapper)
 
         toc = time.time()
         total_time += toc - tic
 
         if epoch == args.n_epochs or epoch % args.eval_every == 0 or epoch % args.log_every == 0:
-            train_score, val_score, test_score, train_loss, val_loss, test_loss, pred = evaluate(
-                args, graph, model, eval_dataloader, labels, train_idx, val_idx, test_idx, criterion, evaluator_wrapper
-            )
+            with eval_dataloader.enable_cpu_affinity():
+                train_score, val_score, test_score, train_loss, val_loss, test_loss, pred = evaluate(
+                    args, graph, model, eval_dataloader, labels, train_idx, val_idx, test_idx, criterion, evaluator_wrapper)
 
             if val_score > best_val_score:
                 best_val_score = val_score
