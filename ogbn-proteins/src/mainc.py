@@ -430,8 +430,7 @@ def main():
 def _data_loader_cpu_aff(sample_type, train_loader, eval_loader):
     if sample_type == "random_cluster":
         return
-    train_loader.enable_cpu_affinity()
-    eval_loader.enable_cpu_affinity()
+    return train_loader.enable_cpu_affinity() and eval_loader.enable_cpu_affinity()
 
 if __name__ == "__main__":
     main()
