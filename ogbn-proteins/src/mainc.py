@@ -97,22 +97,6 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
             loss_sum += loss.item() * count
             total += count
 
-    if args.sample_type == "m_cluster":
-        for subgraph in dataloader:
-            subgraph = subgraph.to(device)
-            train_pred_idx = subgraph.ndata['_ID']
-            inner_train_mask = np.isin(train_pred_idx.cpu(), _train_idx.cpu())
-            train_train_idx = train_pred_idx[inner_train_mask]
-            pred = model(subgraph)
-            loss = criterion(pred[train_train_idx], subgraph.ndata["labels"][train_train_idx].float())
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-            count = len(train_pred_idx)
-            loss_sum += loss.item() * count
-            total += count
-
     if args.sample_type == "khop_sample":
 
         if args.use_labels:
@@ -142,6 +126,21 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
             loss_sum += loss.item() * count
             total += count
 
+    if args.sample_type == "m_cluster":
+        for subgraph in dataloader:
+            subgraph = subgraph.to(device)
+            train_pred_idx = subgraph.ndata['_ID']
+            inner_train_mask = np.isin(train_pred_idx.cpu(), _train_idx.cpu())
+            train_train_idx = train_pred_idx[inner_train_mask]
+            pred = model(subgraph)
+            loss = criterion(pred[train_train_idx], subgraph.ndata["labels"][train_train_idx].float())
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            count = len(train_pred_idx)
+            loss_sum += loss.item() * count
+            total += count
 
     return loss_sum / total
 
@@ -374,7 +373,7 @@ def main():
     graph, labels, train_idx, val_idx, test_idx, evaluator = load_data(dataset, args.root)
     print("Preprocessing")
     graph, labels = preprocess(graph, labels, train_idx, n_classes, one_hot_feat=args.use_one_hot_feature,
-                               user_label=args.use_labels, user_adj=args.norm=="adj", user_avg=args.norm=="adv",
+                               user_label=args.use_labels, user_adj=args.norm=="adj", user_avg=args.norm=="avg",
                                val_idx=val_idx, test_idx=test_idx)
     if args.use_one_hot_feature:
         n_node_feats = graph.ndata["feat"].shape[-1] + graph.ndata["x"].shape[-1]
