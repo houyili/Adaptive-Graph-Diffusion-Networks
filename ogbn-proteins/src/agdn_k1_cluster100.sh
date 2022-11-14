@@ -4,7 +4,7 @@ python -u ./mainc.py \
     --model agdn \
     --sample-type m_cluster \
     --train-partition-num 100 \
-    --sampler_K 5\
+    --sampler-K 5\
     --eval-partition-num 10 \
     --eval-times 1 \
     --lr 0.01 \
