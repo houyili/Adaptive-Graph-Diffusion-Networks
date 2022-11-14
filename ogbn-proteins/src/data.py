@@ -25,16 +25,16 @@ def preprocess(graph, labels, train_idx, n_classes, edge_agg_as_feat=True, one_h
                user_adj=True, user_avg=True, val_idx=None, test_idx=None):
 
     graph.ndata["NID"] = torch.arange(graph.num_nodes())
-    train_mask = torch.zeros(size=(graph.num_nodes(),1), dtype=torch.bool)
+    train_mask = torch.zeros(size=(graph.num_nodes(),), dtype=torch.bool)
     train_mask[train_idx] = True
     graph.ndata["train_mask"] = train_mask
     if val_idx != None:
-        val_mask = torch.zeros(size=(graph.num_nodes(),1), dtype=torch.bool)
+        val_mask = torch.zeros(size=(graph.num_nodes(),), dtype=torch.bool)
         val_mask[val_idx] = True
         graph.ndata["val_mask"] = val_mask
 
     if test_idx != None:
-        test_mask = torch.zeros(size=(graph.num_nodes(),1), dtype=torch.bool)
+        test_mask = torch.zeros(size=(graph.num_nodes(),), dtype=torch.bool)
         test_mask[test_idx] = True
         graph.ndata["test_mask"] = test_mask
 
