@@ -130,12 +130,12 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
         for subgraph in dataloader:
             subgraph = subgraph.to(device)
             pred = model(subgraph)
-            loss = criterion(pred[subgraph["train_mask"]], subgraph.ndata["labels"][subgraph["train_mask"]].float())
+            loss = criterion(pred[subgraph.ndata["train_mask"]], subgraph.ndata["labels"][subgraph.ndata["train_mask"]].float())
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-            count = torch.count_nonzero(subgraph["train_mask"]).item()
+            count = torch.count_nonzero(subgraph.ndata["train_mask"]).item()
             loss_sum += loss.item() * count
             total += count
 
