@@ -1,5 +1,5 @@
 cd "$(dirname $0)"
-python -u ./main.py \
+python -u ./mainc.py \
     --model agdn_sm \
     --sample-type random_cluster \
     --train-partition-num 6 \
