@@ -130,7 +130,6 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
         for subgraph in dataloader:
             subgraph = subgraph.to(device)
             pred = model(subgraph)
-            print(pred)
             print(pred.size())
             print(subgraph.ndata["train_mask"].size())
             print(subgraph.ndata["labels"].size())
