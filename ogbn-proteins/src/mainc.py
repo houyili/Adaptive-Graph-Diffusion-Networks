@@ -131,6 +131,8 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
             subgraph = subgraph.to(device)
             pred = model(subgraph)
             print(pred)
+            print(pred.size())
+            print(subgraph.ndata["train_mask"].size())
             loss = criterion(pred[subgraph.ndata["train_mask"]], subgraph.ndata["labels"][subgraph.ndata["train_mask"]].float())
             optimizer.zero_grad()
             loss.backward()
