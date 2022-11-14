@@ -252,7 +252,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
         train_sampler = dgl.dataloading.ClusterGCNSampler(graph, args.train_partition_num, cache_path=t_path)
         eval_sampler =  dgl.dataloading.ClusterGCNSampler(graph, args.eval_partition_num, cache_path=e_path)
         train_dataloader = dgl.dataloading.DataLoader(graph.cpu(), torch.arange(args.train_partition_num), train_sampler,
-                                                      batch_size=10, shuffle=True, drop_last=False, num_workers=8)
+                                                      batch_size=args.sampler_K, shuffle=True, drop_last=False, num_workers=8)
         eval_dataloader = dgl.dataloading.DataLoader(graph.cpu(), torch.arange(args.eval_partition_num), eval_sampler,
                                                       batch_size=1, shuffle=False, drop_last=False, num_workers=8)
 
