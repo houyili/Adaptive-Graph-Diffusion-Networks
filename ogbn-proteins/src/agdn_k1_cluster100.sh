@@ -6,7 +6,7 @@ python -u ./mainc.py \
     --train-partition-num 100 \
     --sampler_K 5\
     --eval-partition-num 10 \
-    --eval-times 2 \
+    --eval-times 1 \
     --lr 0.01 \
     --advanced-optimizer \
     --n-epochs 1500 \
