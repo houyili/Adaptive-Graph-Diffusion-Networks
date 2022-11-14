@@ -275,40 +275,41 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
     losses, train_losses, val_losses, test_losses = [], [], [], []
     final_pred = None
 
-    with _data_loader_cpu_aff(args.sample_type, train_dataloader, eval_dataloader):
-        for epoch in range(1, args.n_epochs + 1):
-            tic = time.time()
+    with train_dataloader.enable_cpu_affinity():
+        with eval_dataloader.enable_cpu_affinity():
+            for epoch in range(1, args.n_epochs + 1):
+                tic = time.time()
 
-            loss = train(args, graph, model, train_dataloader, labels, train_idx, val_idx, test_idx, criterion,
-                             optimizer, evaluator_wrapper)
+                loss = train(args, graph, model, train_dataloader, labels, train_idx, val_idx, test_idx, criterion,
+                                 optimizer, evaluator_wrapper)
 
-            toc = time.time()
-            total_time += toc - tic
+                toc = time.time()
+                total_time += toc - tic
 
-            if epoch == args.n_epochs or epoch % args.eval_every == 0 or epoch % args.log_every == 0:
-                train_score, val_score, test_score, train_loss, val_loss, test_loss, pred = evaluate(
-                    args, graph, model, eval_dataloader, labels, train_idx, val_idx, test_idx, criterion, evaluator_wrapper)
+                if epoch == args.n_epochs or epoch % args.eval_every == 0 or epoch % args.log_every == 0:
+                    train_score, val_score, test_score, train_loss, val_loss, test_loss, pred = evaluate(
+                        args, graph, model, eval_dataloader, labels, train_idx, val_idx, test_idx, criterion, evaluator_wrapper)
 
-                if val_score > best_val_score:
-                    best_val_score = val_score
-                    final_test_score = test_score
-                    final_pred = pred
-                    best_step = epoch
+                    if val_score > best_val_score:
+                        best_val_score = val_score
+                        final_test_score = test_score
+                        final_pred = pred
+                        best_step = epoch
 
-                if epoch % args.log_every == 0:
-                    out_msg = f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}, Average epoch time: {total_time / epoch:.2f}s\n" \
-                            f"Loss: {loss:.4f} Train/Val/Test loss: {train_loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n" \
-                            f"Train/Val/Test: {train_score:.4f}/{val_score:.4f}/{test_score:.4f}\n"\
-                            f"Best val/Final test score/Best Step: {best_val_score:.4f}/{final_test_score:.4f}/{best_step}\n"
-                    print_msg_and_write(out_msg, log_f)
-                for l, e in zip(
-                    [train_scores, val_scores, test_scores, losses, train_losses, val_losses, test_losses],
-                    [train_score, val_score, test_score, loss, train_loss, val_loss, test_loss],
-                ):
-                    l.append(e)
+                    if epoch % args.log_every == 0:
+                        out_msg = f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}, Average epoch time: {total_time / epoch:.2f}s\n" \
+                                f"Loss: {loss:.4f} Train/Val/Test loss: {train_loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n" \
+                                f"Train/Val/Test: {train_score:.4f}/{val_score:.4f}/{test_score:.4f}\n"\
+                                f"Best val/Final test score/Best Step: {best_val_score:.4f}/{final_test_score:.4f}/{best_step}\n"
+                        print_msg_and_write(out_msg, log_f)
+                    for l, e in zip(
+                        [train_scores, val_scores, test_scores, losses, train_losses, val_losses, test_losses],
+                        [train_score, val_score, test_score, loss, train_loss, val_loss, test_loss],
+                    ):
+                        l.append(e)
 
-            if args.advanced_optimizer:
-                lr_scheduler.step(val_score)
+                if args.advanced_optimizer:
+                    lr_scheduler.step(val_score)
 
     out_msg = "*" * 50 + f"\nBest val score: {best_val_score}, Final test score: {final_test_score}\n" + "*" * 50 + "\n"
     print_msg_and_write(out_msg, log_f)
@@ -426,11 +427,6 @@ def main():
     print(f"Average test score: {np.mean(test_scores)} ± {np.std(test_scores)}")
     print(f"Number of params: {count_parameters(args, n_node_feats, n_edge_feats, n_classes)}")
 
-
-def _data_loader_cpu_aff(sample_type, train_loader, eval_loader):
-    if sample_type == "random_cluster":
-        return
-    return train_loader.enable_cpu_affinity() and eval_loader.enable_cpu_affinity()
 
 if __name__ == "__main__":
     main()
