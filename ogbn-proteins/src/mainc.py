@@ -130,6 +130,7 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
         for subgraph in dataloader:
             subgraph = subgraph.to(device)
             pred = model(subgraph)
+            print(pred)
             loss = criterion(pred[subgraph.ndata["train_mask"]], subgraph.ndata["labels"][subgraph.ndata["train_mask"]].float())
             optimizer.zero_grad()
             loss.backward()
@@ -241,8 +242,8 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
                                             shuffle=False)
 
     if args.sample_type == "m_cluster":
-        t_path = args.root + "ogbn_proteins/cluster_%d_%d.pkl" %(args.train_partition_num, int(time.time()))
-        e_path = args.root + "ogbn_proteins/cluster_%d_%d.pkl" % (args.eval_partition_num, int(time.time()))
+        t_path = args.root + "ogbn_proteins/cluster/cluster_%d_%d.pkl" %(args.train_partition_num, 0)
+        e_path = args.root + "ogbn_proteins/processed/cluster_%d_%d.pkl" % (args.eval_partition_num, 0)#int(time.time())
         train_sampler = dgl.dataloading.ClusterGCNSampler(graph, args.train_partition_num, cache_path=t_path)
         eval_sampler =  dgl.dataloading.ClusterGCNSampler(graph, args.eval_partition_num, cache_path=e_path)
         train_dataloader = dgl.dataloading.DataLoader(graph.cpu(), torch.arange(args.train_partition_num), train_sampler,
