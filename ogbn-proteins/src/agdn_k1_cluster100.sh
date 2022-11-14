@@ -4,7 +4,7 @@ python -u ./mainc.py \
     --model agdn \
     --sample-type m_cluster \
     --train-partition-num 100 \
-    --eval-partition-num 20 \
+    --eval-partition-num 10 \
     --eval-times 2 \
     --lr 0.01 \
     --advanced-optimizer \

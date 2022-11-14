@@ -251,9 +251,11 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
         train_sampler = dgl.dataloading.ClusterGCNSampler(graph, args.train_partition_num, cache_path=t_path)
         eval_sampler =  dgl.dataloading.ClusterGCNSampler(graph, args.eval_partition_num, cache_path=e_path)
         train_dataloader = dgl.dataloading.DataLoader(graph.cpu(), torch.arange(args.train_partition_num), train_sampler,
-                                                      batch_size=4, shuffle=True, drop_last=False, num_workers=8)
+                                                      batch_size=10, shuffle=True, drop_last=False, num_workers=8)
         eval_dataloader = dgl.dataloading.DataLoader(graph.cpu(), torch.arange(args.eval_partition_num), eval_sampler,
-                                                      batch_size=4, shuffle=False, drop_last=False, num_workers=8)
+                                                      batch_size=1, shuffle=False, drop_last=False, num_workers=8)
+        train_dataloader.enable_cpu_affinity()
+        eval_dataloader.enable_cpu_affinity()
 
     criterion = nn.BCEWithLogitsLoss()
 
@@ -274,20 +276,19 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
     losses, train_losses, val_losses, test_losses = [], [], [], []
     final_pred = None
 
+
     for epoch in range(1, args.n_epochs + 1):
         tic = time.time()
 
-        with train_dataloader.enable_cpu_affinity():
-            loss = train(args, graph, model, train_dataloader, labels, train_idx, val_idx, test_idx, criterion,
+        loss = train(args, graph, model, train_dataloader, labels, train_idx, val_idx, test_idx, criterion,
                          optimizer, evaluator_wrapper)
 
         toc = time.time()
         total_time += toc - tic
 
         if epoch == args.n_epochs or epoch % args.eval_every == 0 or epoch % args.log_every == 0:
-            with eval_dataloader.enable_cpu_affinity():
-                train_score, val_score, test_score, train_loss, val_loss, test_loss, pred = evaluate(
-                    args, graph, model, eval_dataloader, labels, train_idx, val_idx, test_idx, criterion, evaluator_wrapper)
+            train_score, val_score, test_score, train_loss, val_loss, test_loss, pred = evaluate(
+                args, graph, model, eval_dataloader, labels, train_idx, val_idx, test_idx, criterion, evaluator_wrapper)
 
             if val_score > best_val_score:
                 best_val_score = val_score
