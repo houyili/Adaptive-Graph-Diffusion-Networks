@@ -204,7 +204,7 @@ def evaluate(args, graph, model, dataloader, labels, train_idx, val_idx, test_id
         train_loss,
         val_loss,
         test_loss,
-        preds,
+        [preds[train_idx], preds[val_idx], preds[test_idx]],
     )
 
 
