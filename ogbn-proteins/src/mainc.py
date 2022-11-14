@@ -133,11 +133,8 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
             mask = subgraph.ndata["train_mask"]
             label = subgraph.ndata["labels"].float()
             print(pred.size())
-            print(mask.size())
-            print(label.size())
-            print(pred)
             print(torch.count_nonzero(mask).item())
-            print(subgraph.ndata["labels"])
+            print(pred[mask].size())
             loss = criterion(pred[mask], label[mask].float())
             optimizer.zero_grad()
             loss.backward()
