@@ -8,15 +8,15 @@ python -u ./main.py \
     --lr 0.01 \
     --advanced-optimizer \
     --n-epochs 1500 \
-    --n-heads 50 \
+    --n-heads 40 \
     --n-layers 6 \
     --weight-style sum \
     --dropout 0.4 \
-    --n-hidden 18 \
+    --n-hidden 25 \
     --input-drop 0.1 \
     --attn-drop 0. \
     --hop-attn-drop 0. \
     --edge-drop 0.1 \
     --norm none \
     --K 1 --edge-agg-mode "none_softmax" --edge-att-act="softplus" --norm="avg"\
-    --gpu 2 --root "/data/ogb/datasets/" --log-file-name="gipa_sm_softplus_k1_head50"
+    --gpu 0 --root "/data/ogb/datasets/" --log-file-name="gipa_sm_softplus_k1_head40"
