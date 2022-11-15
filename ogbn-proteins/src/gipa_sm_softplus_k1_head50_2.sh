@@ -1,5 +1,5 @@
 cd "$(dirname $0)"
-python -u ./main.py \
+python -u ./main2.py \
     --model gipa_sm \
     --sample-type random_cluster \
     --train-partition-num 6 \
@@ -12,11 +12,11 @@ python -u ./main.py \
     --n-layers 6 \
     --weight-style sum \
     --dropout 0.4 \
-    --n-hidden 18 \
+    --n-hidden 20 \
     --input-drop 0.1 \
     --attn-drop 0. \
     --hop-attn-drop 0. \
     --edge-drop 0.1 \
     --norm none \
     --K 1 --edge-agg-mode "none_softmax" --edge-att-act="softplus" --norm="avg"\
-    --gpu 2 --root "/data/ogb/datasets/" --log-file-name="gipa_sm_softplus_k1_head50"
+    --gpu 1 --root "/data/ogb/datasets/" --log-file-name="gipa_sm_softplus_k1_head50_2"
