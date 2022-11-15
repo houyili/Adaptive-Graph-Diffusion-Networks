@@ -276,7 +276,7 @@ def main():
     argparser.add_argument("--log-every", type=int, default=5, help="log every LOG_EVERY epochs")
     argparser.add_argument("--plot", action="store_true", help="plot learning curves")
     argparser.add_argument("--save-pred", action="store_true", help="save final predictions")
-    argparser.add_argument("--root", type=str)
+    argparser.add_argument("--root", type=str, default="./datasets")
     args = argparser.parse_args()
 
     if args.cpu:
