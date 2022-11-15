@@ -247,6 +247,7 @@ class GAT(nn.Module):
 
         h = subgraphs[0].srcdata["feat"]
         h = self.node_encoder(h)
+        h = h.unsqueeze(-1)
         h = self.actor(h)
         h = self.input_drop(h)
 
