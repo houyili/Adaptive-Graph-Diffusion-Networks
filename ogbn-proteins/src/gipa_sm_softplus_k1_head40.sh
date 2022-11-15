@@ -1,6 +1,6 @@
 cd "$(dirname $0)"
 python -u ./main.py \
-    --model agdn_ma \
+    --model gipa_sm \
     --sample-type random_cluster \
     --train-partition-num 6 \
     --eval-partition-num 2 \
@@ -8,15 +8,15 @@ python -u ./main.py \
     --lr 0.01 \
     --advanced-optimizer \
     --n-epochs 1500 \
-    --n-heads 40 \
+    --n-heads 50 \
     --n-layers 6 \
-    --weight-style HC \
+    --weight-style sum \
     --dropout 0.4 \
-    --n-hidden 25 \
+    --n-hidden 18 \
     --input-drop 0.1 \
     --attn-drop 0. \
     --hop-attn-drop 0. \
     --edge-drop 0.1 \
     --norm none \
     --K 1 --edge-agg-mode "none_softmax" --edge-att-act="softplus" --norm="avg"\
-    --gpu 4 --root "/data/ogb/datasets/" --log-file-name="agdn_ma_softplus_k1_head50"
+    --gpu 2 --root "/data/ogb/datasets/" --log-file-name="gipa_sm_softplus_k1_head50"
