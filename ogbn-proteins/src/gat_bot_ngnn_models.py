@@ -61,9 +61,6 @@ class GATConv(nn.Module):
         self.attn_drop = nn.Dropout(attn_drop)
         self.edge_drop = edge_drop
         self.leaky_relu = nn.LeakyReLU(negative_slope, inplace=True)
-        self.rst_act = nn.ReLU(inplace=True)
-        self.fc_adjs = nn.Linear(out_feats * n_heads, out_feats * n_heads)
-        self.fc_adjs2 = nn.Linear(out_feats * n_heads, out_feats * n_heads)
         self.activation = activation
 
         self.reset_parameters()
@@ -82,8 +79,6 @@ class GATConv(nn.Module):
 
         if self.bias is not None:
             nn.init.zeros_(self.bias)
-        nn.init.xavier_normal_(self.fc_adjs.weight, gain=gain)
-        nn.init.xavier_normal_(self.fc_adjs2.weight, gain=gain)
 
     def set_allow_zero_in_degree(self, set_value):
         self._allow_zero_in_degree = set_value
@@ -159,13 +154,6 @@ class GATConv(nn.Module):
                 norm = torch.reshape(norm, shp)
                 rst = rst * norm
 
-            rst = rst.reshape(rst.shape[0],-1)
-            rst = self.fc_adjs(rst)
-            rst = self.rst_act(rst)
-            rst = self.fc_adjs2(rst)
-            rst = self.rst_act(rst)
-            rst = rst.reshape(rst.shape[0], self._n_heads, -1)
-
             # residual
             if self.dst_fc is not None:
                 rst += feat_dst_fc
@@ -237,7 +225,6 @@ class GAT(nn.Module):
         self.input_drop = nn.Dropout(input_drop)
         self.dropout = nn.Dropout(dropout)
         self.activation = activation
-        self.actor = nn.ReLU(inplace=True)
 
     def forward(self, g):
         if not isinstance(g, list):
@@ -247,8 +234,7 @@ class GAT(nn.Module):
 
         h = subgraphs[0].srcdata["feat"]
         h = self.node_encoder(h)
-        h = h.unsqueeze(-1)
-        h = self.actor(h)
+        h = F.relu(h, inplace=True)
         h = self.input_drop(h)
 
         h_last = None
@@ -257,7 +243,7 @@ class GAT(nn.Module):
             if self.edge_encoder is not None:
                 efeat = subgraphs[i].edata["feat"]
                 efeat_emb = self.edge_encoder[i](efeat)
-                efeat_emb = self.actor(efeat_emb)
+                efeat_emb = F.relu(efeat_emb, inplace=True)
             else:
                 efeat_emb = None
 
@@ -267,8 +253,9 @@ class GAT(nn.Module):
                 h += h_last[: h.shape[0], :]
 
             h_last = h
+
             h = self.norms[i](h)
-            h = self.actor(h)
+            h = self.activation(h, inplace=True)
             h = self.dropout(h)
 
         h = self.pred_linear(h)
