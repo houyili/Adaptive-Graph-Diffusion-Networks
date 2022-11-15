@@ -23,7 +23,6 @@ class GIPAConv(nn.Module):
         use_attn_dst=True,
         allow_zero_in_degree=True,
         use_symmetric_norm=False,
-        norm="none",
         agg_batch_norm = False, edge_att_act="leaky_relu"
     ):
         super(GIPAConv, self).__init__()
@@ -33,7 +32,6 @@ class GIPAConv(nn.Module):
         self._allow_zero_in_degree = allow_zero_in_degree
         self._use_symmetric_norm = use_symmetric_norm
         self._agg_batch_norm = agg_batch_norm
-        self._norm = norm
 
         # feat fc
         self.src_fc = nn.Linear(self._in_src_feats, out_feats * n_heads, bias=False)
@@ -175,9 +173,9 @@ class GIPA(nn.Module):
         dropout,
         input_drop,
         attn_drop,
-        edge_drop,
+        edge_drop, first_layer_hidden,
         use_attn_dst=True,
-        allow_zero_in_degree=False,
+        allow_zero_in_degree=False, agg_batch_norm = False, edge_att_act="leaky_relu"
     ):
         super().__init__()
         self.n_layers = n_layers
@@ -188,12 +186,12 @@ class GIPA(nn.Module):
         self.convs = nn.ModuleList()
         self.norms = nn.ModuleList()
 
-        self.node_encoder = nn.Linear(node_feats, n_hidden)
+        self.node_encoder = nn.Linear(node_feats, first_layer_hidden)
         if edge_emb > 0:
             self.edge_encoder = nn.ModuleList()
 
         for i in range(n_layers):
-            in_hidden = n_heads * n_hidden if i > 0 else n_hidden
+            in_hidden = n_heads * n_hidden if i > 0 else first_layer_hidden
             out_hidden = n_hidden
             # bias = i == n_layers - 1
 
@@ -209,7 +207,7 @@ class GIPA(nn.Module):
                     edge_drop=edge_drop,
                     use_attn_dst=use_attn_dst,
                     allow_zero_in_degree=allow_zero_in_degree,
-                    use_symmetric_norm=False,
+                    use_symmetric_norm=False, agg_batch_norm=agg_batch_norm, edge_att_act=edge_att_act
                 )
             )
             self.norms.append(nn.BatchNorm1d(n_heads * out_hidden))
