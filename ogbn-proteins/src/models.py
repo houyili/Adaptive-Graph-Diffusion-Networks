@@ -422,7 +422,6 @@ class AGDNConv(nn.Module):
                 perm = torch.randperm(graph.number_of_edges(), device=e.device)
                 bound = int(graph.number_of_edges() * self.edge_drop)
                 eids = perm[bound:]
-                
             else:
                 eids = torch.arange(graph.number_of_edges(), device=e.device)
             graph.edata["a"] = torch.zeros_like(e)
