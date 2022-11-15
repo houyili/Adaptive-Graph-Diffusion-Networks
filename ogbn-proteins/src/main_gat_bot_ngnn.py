@@ -116,7 +116,8 @@ def train(args, model, dataloader, _labels, _train_idx, criterion, optimizer, _e
         pred = model(subgraphs)
         loss = criterion(pred[train_pred_idx], subgraphs[-1].dstdata["labels"][train_pred_idx].float())
         optimizer.zero_grad()
-        loss.backward()
+        with torch.autograd.set_detect_anomaly(True):
+            loss.backward()
         optimizer.step()
 
         count = len(train_pred_idx)
