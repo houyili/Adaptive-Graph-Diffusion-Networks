@@ -18,6 +18,7 @@ from ogb.nodeproppred import DglNodePropPredDataset, Evaluator
 from torch import nn
 
 from gat_bot_ngnn_models import GAT
+from utils import get_cpu_list
 
 device = None
 dataset = "ogbn-proteins"
@@ -173,15 +174,16 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running)
 
     # train_batch_size = (len(train_idx) + 9) // 10
     train_batch_size = (len(train_idx) + args.batch_rate - 1) // args.batch_rate
+    eval_batch_size = (len(train_idx) + args.eval_batch_rate - 1) // args.eval_batch_rate
     # batch_size = len(train_idx)
-    train_sampler = MultiLayerNeighborSampler([32 for _ in range(args.n_layers)])
+    train_sampler = MultiLayerNeighborSampler([args.sample1,args.sample2,args.sample3,args.sample4,args.sample5,args.sample6])
     # sampler = MultiLayerFullNeighborSampler(args.n_layers)
     train_dataloader = DataLoader(graph.cpu(), train_idx.cpu(), train_sampler, batch_size=train_batch_size, num_workers=10)
 
-    eval_sampler = MultiLayerNeighborSampler([100 for _ in range(args.n_layers)])
+    eval_sampler = MultiLayerNeighborSampler([300 for _ in range(args.n_layers)])
     # sampler = MultiLayerFullNeighborSampler(args.n_layers)
     eval_dataloader =  DataLoader(graph.cpu(), torch.cat([train_idx.cpu(), val_idx.cpu(), test_idx.cpu()]),
-                                  eval_sampler,  batch_size=65536, num_workers=10)
+                                  eval_sampler,  batch_size=eval_batch_size, num_workers=10)
 
 
     criterion = nn.BCEWithLogitsLoss()
@@ -200,8 +202,9 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running)
     losses, train_losses, val_losses, test_losses = [], [], [], []
     final_pred = None
 
-    with train_dataloader.enable_cpu_affinity():
-        with eval_dataloader.enable_cpu_affinity():
+    cpu1,cpu2 = get_cpu_list(args.cpu_start_from)
+    with train_dataloader.enable_cpu_affinity(loader_cores=cpu1, compute_cores=cpu2):
+        with eval_dataloader.enable_cpu_affinity(loader_cores=cpu1, compute_cores=cpu2):
             for epoch in range(1, args.n_epochs + 1):
                 tic = time.time()
 
@@ -259,6 +262,7 @@ def main():
 
     argparser = argparse.ArgumentParser("GAT implementation on ogbn-proteins", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     argparser.add_argument("--batch_rate", type=int, default=10)
+    argparser.add_argument("--eval-batch-rate", type=int, default=5)
     argparser.add_argument("--cpu", action="store_true", help="CPU mode. This option overrides '--gpu'.")
     argparser.add_argument("--gpu", type=int, default=0, help="GPU device ID")
     argparser.add_argument("--seed", type=int, default=0, help="random seed")
@@ -280,6 +284,14 @@ def main():
     argparser.add_argument("--plot", action="store_true", help="plot learning curves")
     argparser.add_argument("--save-pred", action="store_true", help="save final predictions")
     argparser.add_argument("--root", type=str, default="./datasets")
+    argparser.add_argument("--cpu-start-from", type=int, default=0)
+    argparser.add_argument("--sample1", type=int, default=32)
+    argparser.add_argument("--sample2", type=int, default=32)
+    argparser.add_argument("--sample3", type=int, default=32)
+    argparser.add_argument("--sample4", type=int, default=32)
+    argparser.add_argument("--sample5", type=int, default=32)
+    argparser.add_argument("--sample6", type=int, default=32)
+
     args = argparser.parse_args()
     print(args)
     if args.cpu:

@@ -47,3 +47,9 @@ def print_msg_and_write(out_msg, log_f):
     log_f.write(out_msg)
     log_f.flush()
 
+def get_cpu_list(start_from:int, cpu_num:int):
+    cpu_num_2 = int(float(cpu_num) * 1.5)
+    base = start_from
+    list_1 = [i + base for i in range(cpu_num)]
+    list_2 = [i + base + cpu_num for i in range(cpu_num_2)]
+    return list_1,list_2
