@@ -61,6 +61,7 @@ class GATConv(nn.Module):
         self.attn_drop = nn.Dropout(attn_drop)
         self.edge_drop = edge_drop
         self.leaky_relu = nn.LeakyReLU(negative_slope, inplace=True)
+        self.rst_act = nn.ReLU(inplace=True)
         self.fc_adjs = nn.Linear(out_feats * n_heads, out_feats * n_heads)
         self.fc_adjs2 = nn.Linear(out_feats * n_heads, out_feats * n_heads)
         self.activation = activation
@@ -160,9 +161,9 @@ class GATConv(nn.Module):
 
             rst = rst.reshape(rst.shape[0],-1)
             rst = self.fc_adjs(rst)
-            rst = F.relu(rst)
+            rst = self.rst_act(rst)
             rst = self.fc_adjs2(rst)
-            rst = F.relu(rst)
+            rst = self.rst_act(rst)
             rst = rst.reshape(rst.shape[0], self._n_heads, -1)
 
             # residual
@@ -236,6 +237,7 @@ class GAT(nn.Module):
         self.input_drop = nn.Dropout(input_drop)
         self.dropout = nn.Dropout(dropout)
         self.activation = activation
+        self.actor = nn.ReLU(inplace=True)
 
     def forward(self, g):
         if not isinstance(g, list):
@@ -245,7 +247,7 @@ class GAT(nn.Module):
 
         h = subgraphs[0].srcdata["feat"]
         h = self.node_encoder(h)
-        h = F.relu(h, inplace=True)
+        h = self.actor(h, inplace=True)
         h = self.input_drop(h)
 
         h_last = None
@@ -254,7 +256,7 @@ class GAT(nn.Module):
             if self.edge_encoder is not None:
                 efeat = subgraphs[i].edata["feat"]
                 efeat_emb = self.edge_encoder[i](efeat)
-                efeat_emb = F.relu(efeat_emb, inplace=True)
+                efeat_emb = self.actor(efeat_emb, inplace=True)
             else:
                 efeat_emb = None
 
