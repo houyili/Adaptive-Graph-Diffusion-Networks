@@ -247,7 +247,7 @@ class GAT(nn.Module):
 
         h = subgraphs[0].srcdata["feat"]
         h = self.node_encoder(h)
-        h = self.actor(h, inplace=True)
+        h = self.actor(h)
         h = self.input_drop(h)
 
         h_last = None
@@ -256,7 +256,7 @@ class GAT(nn.Module):
             if self.edge_encoder is not None:
                 efeat = subgraphs[i].edata["feat"]
                 efeat_emb = self.edge_encoder[i](efeat)
-                efeat_emb = self.actor(efeat_emb, inplace=True)
+                efeat_emb = self.actor(efeat_emb)
             else:
                 efeat_emb = None
 
