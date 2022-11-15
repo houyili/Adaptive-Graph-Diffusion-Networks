@@ -177,11 +177,12 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running)
     train_batch_size = (len(train_idx) + args.batch_rate - 1) // args.batch_rate
     eval_batch_size = (len(train_idx) + args.eval_batch_rate - 1) // args.eval_batch_rate
     # batch_size = len(train_idx)
-    train_sampler = MultiLayerNeighborSampler([args.sample1,args.sample2,args.sample3,args.sample4,args.sample5,args.sample6])
+    sample_num = [args.sample1,args.sample2,args.sample3,args.sample4,args.sample5,args.sample6]
+    train_sampler = MultiLayerNeighborSampler(sample_num)
     # sampler = MultiLayerFullNeighborSampler(args.n_layers)
     train_dataloader = DataLoader(graph.cpu(), train_idx.cpu(), train_sampler, batch_size=train_batch_size, num_workers=10)
 
-    eval_sampler = MultiLayerNeighborSampler([300 for _ in range(args.n_layers)])
+    eval_sampler = MultiLayerNeighborSampler([3*i for i in sample_num])
     # sampler = MultiLayerFullNeighborSampler(args.n_layers)
     eval_dataloader =  DataLoader(graph.cpu(), torch.cat([train_idx.cpu(), val_idx.cpu(), test_idx.cpu()]),
                                   eval_sampler,  batch_size=eval_batch_size, num_workers=10)
