@@ -202,7 +202,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running)
     losses, train_losses, val_losses, test_losses = [], [], [], []
     final_pred = None
 
-    cpu1,cpu2 = get_cpu_list(args.cpu_start_from)
+    cpu1,cpu2 = get_cpu_list(args.cpu_start_from, 10)
     with train_dataloader.enable_cpu_affinity(loader_cores=cpu1, compute_cores=cpu2):
         with eval_dataloader.enable_cpu_affinity(loader_cores=cpu1, compute_cores=cpu2):
             for epoch in range(1, args.n_epochs + 1):
