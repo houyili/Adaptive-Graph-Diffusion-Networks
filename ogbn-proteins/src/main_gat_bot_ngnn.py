@@ -35,8 +35,8 @@ def seed(seed=0):
     dgl.random.seed(seed)
 
 
-def load_data(dataset):
-    data = DglNodePropPredDataset(name=dataset)
+def load_data(dataset, root):
+    data = DglNodePropPredDataset(name=dataset, root=root)
     evaluator = Evaluator(name=dataset)
 
     splitted_idx = data.get_idx_split()
@@ -170,8 +170,8 @@ def evaluate(args, model, dataloader, labels, train_idx, val_idx, test_idx, crit
 def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running):
     evaluator_wrapper = lambda pred, labels: evaluator.eval({"y_pred": pred, "y_true": labels})["rocauc"]
 
-    train_batch_size = (len(train_idx) + 9) // 10
-    #train_batch_size = (len(train_idx) + args.batch_rate - 1) // args.batch_rate
+    # train_batch_size = (len(train_idx) + 9) // 10
+    train_batch_size = (len(train_idx) + args.batch_rate - 1) // args.batch_rate
     # batch_size = len(train_idx)
     train_sampler = MultiLayerNeighborSampler([32 for _ in range(args.n_layers)])
     # sampler = MultiLayerFullNeighborSampler(args.n_layers)
@@ -261,9 +261,7 @@ def main():
     argparser.add_argument("--seed", type=int, default=0, help="random seed")
     argparser.add_argument("--n-runs", type=int, default=10, help="running times")
     argparser.add_argument("--n-epochs", type=int, default=1200, help="number of epochs")
-    argparser.add_argument(
-        "--use-labels", action="store_true", help="Use labels in the training set as input features."
-    )
+    argparser.add_argument("--use-labels", action="store_true", help="Use labels in the training set as input features.")
     argparser.add_argument("--no-attn-dst", action="store_true", help="Don't use attn_dst.")
     argparser.add_argument("--n-heads", type=int, default=6, help="number of heads")
     argparser.add_argument("--lr", type=float, default=0.01, help="learning rate")
@@ -278,6 +276,7 @@ def main():
     argparser.add_argument("--log-every", type=int, default=5, help="log every LOG_EVERY epochs")
     argparser.add_argument("--plot", action="store_true", help="plot learning curves")
     argparser.add_argument("--save-pred", action="store_true", help="save final predictions")
+    argparser.add_argument("--root", type=str)
     args = argparser.parse_args()
 
     if args.cpu:
@@ -287,7 +286,7 @@ def main():
 
     # load data & preprocess
     print("Loading data")
-    graph, labels, train_idx, val_idx, test_idx, evaluator = load_data(dataset)
+    graph, labels, train_idx, val_idx, test_idx, evaluator = load_data(dataset, root=args.root)
     print("Preprocessing")
     graph, labels = preprocess(graph, labels, train_idx)
 
