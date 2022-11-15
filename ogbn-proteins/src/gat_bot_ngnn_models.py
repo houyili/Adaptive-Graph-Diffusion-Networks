@@ -267,7 +267,7 @@ class GAT(nn.Module):
 
             h_last = h
             h = self.norms[i](h)
-            h = self.activation(h, inplace=True)
+            h = self.actor(h)
             h = self.dropout(h)
 
         h = self.pred_linear(h)
