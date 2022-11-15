@@ -23,6 +23,7 @@ class GIPAConv(nn.Module):
         use_attn_dst=True,
         allow_zero_in_degree=True,
         use_symmetric_norm=False,
+        norm="none",
         agg_batch_norm = False, edge_att_act="leaky_relu"
     ):
         super(GIPAConv, self).__init__()
@@ -32,6 +33,7 @@ class GIPAConv(nn.Module):
         self._allow_zero_in_degree = allow_zero_in_degree
         self._use_symmetric_norm = use_symmetric_norm
         self._agg_batch_norm = agg_batch_norm
+        self._norm = norm
 
         # feat fc
         self.src_fc = nn.Linear(self._in_src_feats, out_feats * n_heads, bias=False)
@@ -53,18 +55,16 @@ class GIPAConv(nn.Module):
         else:
             self.attn_edge_fc = None
 
+        if agg_batch_norm:
+            self.offset, self.scale = nn.ParameterList(), nn.ParameterList()
+            for _ in range(1):
+                self.offset.append(nn.Parameter(torch.zeros(size=(1, n_heads, out_feats))))
+                self.scale.append(nn.Parameter(torch.ones(size=(1, n_heads, out_feats))))
         self.attn_drop = nn.Dropout(attn_drop)
         self.edge_drop = edge_drop
         self.leaky_relu = nn.LeakyReLU(negative_slope, inplace=True)
         self.edge_att_actv = nn.LeakyReLU(negative_slope, inplace=True) if edge_att_act == "leaky_relu" else nn.Softplus()
         self.activation = activation
-
-        if agg_batch_norm:
-            self.offset, self.scale = nn.ParameterList(), nn.ParameterList()
-            for _ in range(2):
-                self.offset.append(nn.Parameter(torch.zeros(size=(1, n_heads, out_feats))))
-                self.scale.append(nn.Parameter(torch.ones(size=(1, n_heads, out_feats))))
-
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -82,7 +82,7 @@ class GIPAConv(nn.Module):
         if self.bias is not None:
             nn.init.zeros_(self.bias)
 
-    def _batch_normal(self, h, idx):
+    def agg_batch_norm(self, h, idx):
         if self._batch_norm:
             mean = h.mean(dim=-1).view(h.shape[0], self._n_heads, 1)
             var = h.var(dim=-1, unbiased=False).view(h.shape[0], self._n_heads, 1) + 1e-9
@@ -143,23 +143,10 @@ class GIPAConv(nn.Module):
 
             graph.edata["a"][eids] = e[eids]
 
-            if self._norm == "adj":
-                graph.edata["a"][eids] = graph.edata["a"][eids] * graph.edata["gcn_norm_adjust"][eids].view(-1, 1, 1)
-            if self._norm == "avg":
-                graph.edata["a"][eids] = (graph.edata["a"][eids] + graph.edata["gcn_norm"][eids].view(-1, 1, 1)) / 2
-
             # message passing
             graph.update_all(fn.u_mul_e("feat_src_fc", "a", "m"), fn.sum("m", "feat_src_fc"))
 
-            rst = graph.dstdata["feat_src_fc"]
-
-            if self._use_symmetric_norm:
-                degs = graph.dstdata["deg"]
-                # degs = graph.in_degrees().float().clamp(min=1)
-                norm = torch.pow(degs, 0.5)
-                shp = norm.shape + (1,) * (feat_dst.dim())
-                norm = torch.reshape(norm, shp)
-                rst = rst * norm
+            rst = self.agg_batch_norm(graph.dstdata["feat_src_fc"], 0)
 
             # residual
             if self.dst_fc is not None:

@@ -18,5 +18,5 @@ python -u ../main.py \
     --hop-attn-drop 0. \
     --edge-drop 0.1 \
     --norm none \
-    --K 1 --edge-agg-mode "none_softmax" --edge-att-act="softplus"\
-    --gpu 7 --root "/data/ogb/datasets/" --log-file-name="gipa_sm_softplus_k1_head20_2"
+    --K 1 --edge-agg-mode "none_softmax"\
+    --gpu 4 --root "/data/ogb/datasets/" --log-file-name="gipa_sm_softplus_k1_head20_3"
