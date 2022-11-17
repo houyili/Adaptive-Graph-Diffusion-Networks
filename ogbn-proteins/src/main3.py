@@ -155,7 +155,7 @@ def evaluate(args, graph, model, dataloader, labels, train_idx, val_idx, test_id
     # model.to(device_cpu)
     model.eval()
 
-    preds = torch.zeros(labels.shape)
+    preds = torch.zeros(labels.shape).to(device)
 
     # Due to the memory capacity constraints, we use sampling for inference and calculate the average of the predictions 'eval_times' times.
 
