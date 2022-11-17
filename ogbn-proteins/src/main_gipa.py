@@ -175,7 +175,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running)
 
     # train_batch_size = (len(train_idx) + 9) // 10
     train_batch_size = (len(train_idx) + args.batch_rate - 1) // args.batch_rate
-    eval_batch_size = (len(train_idx) + args.eval_batch_rate - 1) // args.eval_batch_rate
+    eval_batch_size = (len(val_idx) + len(test_idx) + args.eval_batch_rate - 1) // args.eval_batch_rate
     # batch_size = len(train_idx)
 
     if args.sample_no_limit:
