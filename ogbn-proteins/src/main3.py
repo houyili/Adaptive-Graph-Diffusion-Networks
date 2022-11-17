@@ -32,6 +32,7 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
 
     model.train()
 
+    train_pred = torch.zeros(graph.ndata["labels"].shape).to(device)
     loss_sum, total = 0, 0
     if args.sample_type == "neighbor_sample":
         for input_nodes, output_nodes, subgraphs in dataloader:
@@ -83,6 +84,7 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
             inner_train_mask = np.isin(batch_nodes[train_pred_idx.cpu()], _train_idx.cpu())
             train_pred_idx = train_pred_idx[inner_train_mask]
             pred = model(subgraph)
+            train_pred[batch_nodes] += pred
             # if args.n_label_iters > 0:
             #     unlabel_idx = np.setdiff1d(new_train_idx, train_labels_idx)
             #     for _ in range(args.n_label_iters):
@@ -147,7 +149,7 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
             loss_sum += loss.item() * count
             total += count
 
-    return loss_sum / total
+    return loss_sum / total, train_pred
 
 
 @torch.no_grad()
@@ -283,13 +285,23 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
     for epoch in range(1, args.n_epochs + 1):
         tic = time.time()
 
-        loss = train(args, graph, model, train_dataloader, labels, train_idx, val_idx, test_idx, criterion,
+        loss, train_pred = train(args, graph, model, train_dataloader, labels, train_idx, val_idx, test_idx, criterion,
                          optimizer, evaluator_wrapper)
 
         toc = time.time()
         total_time += toc - tic
+        train_score = evaluator(train_pred[train_idx], labels[train_idx])
+        print(f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}. Training Loss: {loss:.4f} score: {train_score:.4f}")
 
-        if epoch == args.n_epochs or epoch % args.eval_every == 0 or epoch % args.log_every == 0:
+        if epoch < 100:
+            eval_interval, log_interval = 2, 2
+        elif epoch < 500:
+            eval_interval, log_interval = args.eval_every * 5, args.log_every * 5
+        elif epoch < 1000:
+            eval_interval, log_interval =  args.eval_every * 2, args.log_every * 2
+        else:
+            eval_interval, log_interval = args.eval_every, args.log_every
+        if epoch == args.n_epochs or epoch % eval_interval == 0 or epoch % log_interval == 0:
             train_score, val_score, test_score, train_loss, val_loss, test_loss, pred = evaluate(
                 args, graph, model, eval_dataloader, labels, train_idx, val_idx, test_idx, criterion, evaluator_wrapper)
 
@@ -299,7 +311,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
                 final_pred = pred
                 best_step = epoch
 
-            if epoch % args.log_every == 0:
+            if epoch % log_interval == 0:
                 out_msg = f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}, Average epoch time: {total_time / epoch:.2f}s\n" \
                         f"Loss: {loss:.4f} Train/Val/Test loss: {train_loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n" \
                         f"Train/Val/Test: {train_score:.4f}/{val_score:.4f}/{test_score:.4f}\n"\
@@ -373,7 +385,7 @@ def main():
     argparser.add_argument("--hop-attn-drop", type=float, default=0.0, help="hop-wise attention dropout rate")
     argparser.add_argument("--edge-drop", type=float, default=0.1, help="edge drop rate")
     argparser.add_argument("--wd", type=float, default=0, help="weight decay")
-    argparser.add_argument("--eval-every", type=int, default=2, help="evaluate every EVAL_EVERY epochs")
+    argparser.add_argument("--eval-every", type=int, default=5, help="evaluate every EVAL_EVERY epochs")
     argparser.add_argument("--log-every", type=int, default=5, help="log every LOG_EVERY epochs")
     argparser.add_argument("--plot", action="store_true", help="plot learning curves")
     argparser.add_argument("--save-pred", action="store_true", help="save final predictions")
