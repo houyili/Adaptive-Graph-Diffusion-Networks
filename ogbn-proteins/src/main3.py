@@ -29,6 +29,7 @@ n_node_feats, n_edge_feats, n_classes = 0, 8, 112
 
 def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx, criterion, optimizer, _evaluator):
     model.to(device)
+
     model.train()
 
     loss_sum, total = 0, 0
@@ -154,7 +155,7 @@ def evaluate(args, graph, model, dataloader, labels, train_idx, val_idx, test_id
     torch.cuda.empty_cache()
     model.cpu()
     model.eval()
-
+    labels.to(device_cpu)
     preds = torch.zeros(labels.shape).to(device_cpu)
 
     # Due to the memory capacity constraints, we use sampling for inference and calculate the average of the predictions 'eval_times' times.
