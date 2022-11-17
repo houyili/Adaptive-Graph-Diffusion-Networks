@@ -293,7 +293,8 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
         toc = time.time()
         total_time += toc - tic
 
-        print(f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}. Training Loss: {loss:.4f} score: {train_score:.4f}")
+        print(f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}. "
+              f"Training Loss: {loss:.4f} score: {train_score:.4f}, Train epoch time: {toc - tic:.2f}s")
 
         if epoch < 100:
             eval_interval, log_interval = 2, 2
