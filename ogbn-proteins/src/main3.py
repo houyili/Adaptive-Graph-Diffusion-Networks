@@ -174,7 +174,7 @@ def evaluate(args, graph, model, dataloader, labels, train_idx, val_idx, test_id
 
         if args.sample_type in ["random_cluster", "khop_sample"]:
             for batch_nodes, subgraph in random_partition_v2(args.eval_partition_num, graph, shuffle=False):
-                subgraph = subgraph
+                subgraph = subgraph.to(device)
                 new_train_idx = torch.arange(len(batch_nodes))
                 # label_idx = new_train_idx[np.isin(batch_nodes, train_idx.cpu())]
 
