@@ -15,6 +15,7 @@ class EdgeSampleNeighborSampler(NeighborSampler):
         assert edge_sample_rate > 0.001 and edge_sample_rate <= 1
         self._sample_rate = edge_sample_rate
         self._min_fanout = min_fanout
+        print("Init %s" % str(self.__class__))
 
     def sample_blocks(self, g, seed_nodes, exclude_eids=None):
         output_nodes = seed_nodes
