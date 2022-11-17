@@ -28,7 +28,7 @@ n_node_feats, n_edge_feats, n_classes = 0, 8, 112
 
 
 def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx, criterion, optimizer, _evaluator):
-    model.to(device)
+    # model.to(device)
     model.train()
 
     loss_sum, total = 0, 0
@@ -152,7 +152,7 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
 @torch.no_grad()
 def evaluate(args, graph, model, dataloader, labels, train_idx, val_idx, test_idx, criterion, evaluator):
     torch.cuda.empty_cache()
-    model.to(device_cpu)
+    # model.to(device_cpu)
     model.eval()
 
     preds = torch.zeros(labels.shape).to(device_cpu)
