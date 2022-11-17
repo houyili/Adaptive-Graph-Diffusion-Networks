@@ -179,15 +179,15 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running)
     # batch_size = len(train_idx)
 
     if args.sample_no_limit:
-        sample_num = [-1 * args.n_layers]
+        sample_num = [-1] * args.n_layers
     else:
         sample_num = [args.sample1,args.sample2,args.sample3,args.sample4,args.sample5,args.sample6]
     if args.edge_sample_rate > 0 and args.edge_sample_rate < 1:
         train_sampler = EdgeSampleNeighborSampler(sample_num, args.edge_sample_rate)
-        eval_sampler = EdgeSampleNeighborSampler(sample_num, args.edge_sample_rate)
+        eval_sampler = EdgeSampleNeighborSampler(sample_num, 0.5)
     else:
         train_sampler = MultiLayerNeighborSampler(sample_num)
-        eval_sampler = MultiLayerNeighborSampler([3*i for i in sample_num])
+        eval_sampler = MultiLayerNeighborSampler([3*i if i > 0 else -1 for i in sample_num])
 
     train_dataloader = DataLoader(graph.cpu(), train_idx.cpu(), train_sampler, batch_size=train_batch_size, num_workers=10)
     eval_dataloader =  DataLoader(graph.cpu(), torch.cat([train_idx.cpu(), val_idx.cpu(), test_idx.cpu()]),
