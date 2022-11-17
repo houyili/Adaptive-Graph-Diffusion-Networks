@@ -32,6 +32,7 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
 
     model.train()
 
+    train_score = -1
     train_pred = torch.zeros(graph.ndata["labels"].shape).to(device)
     loss_sum, total = 0, 0
     if args.sample_type == "neighbor_sample":
@@ -101,7 +102,7 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
             count = len(train_pred_idx)
             loss_sum += loss.item() * count
             total += count
-
+        train_score = _evaluator(train_pred[_train_idx], _labels[train_idx])
     if args.sample_type == "khop_sample":
 
         if args.use_labels:
@@ -149,7 +150,8 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
             loss_sum += loss.item() * count
             total += count
 
-    return loss_sum / total, train_pred
+
+    return loss_sum / total, train_score
 
 
 @torch.no_grad()
@@ -285,12 +287,12 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
     for epoch in range(1, args.n_epochs + 1):
         tic = time.time()
 
-        loss, train_pred = train(args, graph, model, train_dataloader, labels, train_idx, val_idx, test_idx, criterion,
+        loss, train_score = train(args, graph, model, train_dataloader, labels, train_idx, val_idx, test_idx, criterion,
                          optimizer, evaluator_wrapper)
 
         toc = time.time()
         total_time += toc - tic
-        train_score = evaluator(train_pred[train_idx], labels[train_idx])
+
         print(f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}. Training Loss: {loss:.4f} score: {train_score:.4f}")
 
         if epoch < 100:
