@@ -190,7 +190,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running)
         eval_sampler = MultiLayerNeighborSampler([3*i if i > 0 else -1 for i in sample_num])
 
     train_dataloader = DataLoader(graph.cpu(), train_idx.cpu(), train_sampler, batch_size=train_batch_size, num_workers=10)
-    eval_dataloader =  DataLoader(graph.cpu(), torch.cat([train_idx.cpu(), val_idx.cpu(), test_idx.cpu()]),
+    eval_dataloader =  DataLoader(graph.cpu(), torch.cat([val_idx.cpu(), test_idx.cpu()]),
                                   eval_sampler,  batch_size=eval_batch_size, num_workers=10)
 
 
