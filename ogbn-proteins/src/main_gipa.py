@@ -183,7 +183,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running)
     else:
         sample_num = [args.sample1,args.sample2,args.sample3,args.sample4,args.sample5,args.sample6]
     if args.edge_sample_rate > 0 and args.edge_sample_rate < 1:
-        train_sampler = EdgeSampleNeighborSampler(sample_num, args.edge_sample_rate)
+        train_sampler = EdgeSampleNeighborSampler(sample_num, args.edge_sample_rate, min_fanout=1)
         eval_sampler = EdgeSampleNeighborSampler(sample_num, 0.5)
     else:
         train_sampler = MultiLayerNeighborSampler(sample_num)
