@@ -4,7 +4,7 @@ python -u ../main_gipa.py \
           --gpu 4 \
           --lr 0.01 \
           --n-hidden 50 \
-          --batch_rate 10 \
+          --batch_rate 20 \
           --root "/data/ogb/datasets/"\
           --cpu-start-from 75 \
           --sample-no-limit \
