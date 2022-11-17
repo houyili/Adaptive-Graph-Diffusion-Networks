@@ -297,7 +297,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
               f"Training Loss: {loss:.4f} score: {train_score:.4f}, Train epoch time: {toc - tic:.2f}s")
 
         if epoch < 100:
-            eval_interval, log_interval = 2, 2
+            eval_interval, log_interval = args.eval_every * 10, args.log_every * 10
         elif epoch < 500:
             eval_interval, log_interval = args.eval_every * 5, args.log_every * 5
         elif epoch < 1000:
