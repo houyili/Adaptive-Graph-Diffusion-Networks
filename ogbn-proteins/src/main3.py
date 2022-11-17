@@ -102,7 +102,7 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
             count = len(train_pred_idx)
             loss_sum += loss.item() * count
             total += count
-        train_score = _evaluator(train_pred[_train_idx], _labels[train_idx])
+        train_score = _evaluator(train_pred[_train_idx], _labels[_train_idx])
     if args.sample_type == "khop_sample":
 
         if args.use_labels:
