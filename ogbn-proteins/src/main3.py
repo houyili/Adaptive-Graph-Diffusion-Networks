@@ -401,7 +401,7 @@ def main():
     # if args.use_labels:
     #     n_node_feats += 2 * n_classes
 
-    labels, train_idx, val_idx, test_idx = map(lambda x: x.to(device), (labels, train_idx, val_idx, test_idx))
+    labels, train_idx, val_idx, test_idx = map(lambda x: x.to(device_cpu), (labels, train_idx, val_idx, test_idx))
 
     # run
     val_scores, test_scores = [], []
