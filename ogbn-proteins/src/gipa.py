@@ -135,11 +135,10 @@ class GIPAConv(nn.Module):
                 perm = torch.randperm(graph.number_of_edges(), device=e.device)
                 bound = int(graph.number_of_edges() * self.edge_drop)
                 eids = perm[bound:]
+                graph.edata["a"] = torch.zeros_like(e)
+                graph.edata["a"][eids] = e[eids]
             else:
-                eids = torch.arange(graph.number_of_edges(), device=e.device)
-            graph.edata["a"] = torch.zeros_like(e)
-
-            graph.edata["a"][eids] = e[eids]
+                graph.edata["a"] = e
 
             # message passing
             graph.update_all(fn.u_mul_e("feat_src_fc", "a", "m"), fn.sum("m", "feat_src_fc"))

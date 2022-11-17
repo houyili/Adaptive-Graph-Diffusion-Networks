@@ -1,8 +1,11 @@
-import dgl.function as fn
 import torch
+
 import numpy as np
+
+import dgl.function as fn
 from sklearn import preprocessing
 from ogb.nodeproppred import DglNodePropPredDataset, Evaluator
+
 from utils import compute_norm
 
 def load_data(dataset, root_path):
@@ -80,3 +83,4 @@ def preprocess(graph, labels, train_idx, n_classes, edge_agg_as_feat=True, one_h
     print(graph.edata.keys())
 
     return graph, labels
+

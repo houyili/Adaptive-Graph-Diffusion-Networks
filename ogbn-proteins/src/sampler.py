@@ -3,9 +3,9 @@ import math
 import numpy as np
 import torch
 import dgl.function as fn
+
 from utils import compute_norm
 from torch_sparse import SparseTensor
-
 
 class DataLoaderWrapper(object):
     def __init__(self, dataloader):
@@ -187,4 +187,3 @@ class RandomPartitionSampler(torch.utils.data.DataLoader):
         n_id = n_id[0]
         subg = self.g.subgraph(n_id)
         return n_id, subg
-
