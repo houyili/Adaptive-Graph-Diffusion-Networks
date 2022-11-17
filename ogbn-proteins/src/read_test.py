@@ -133,7 +133,7 @@ bl_b.all_edges()[1].size()
 
 
 
-from edge_sample import EdgeSampleNeighborSampler
+from new_sample import EdgeSampleNeighborSampler, InSeedNodeNeighborSampler
 import torch
 import dgl
 from ogb.nodeproppred import DglNodePropPredDataset
@@ -151,3 +151,12 @@ frontier_2 = train_sampler_2.sample_blocks(graph, seed_nodes)
 
 train_sampler_3 = dgl.dataloading.MultiLayerNeighborSampler([32, 32, 32, 100 ,100 ,100])
 frontier_3 = train_sampler_3.sample_blocks(graph, seed_nodes)
+
+
+splitted_idx = data.get_idx_split()
+train_idx, val_idx, test_idx = splitted_idx["train"], splitted_idx["valid"], splitted_idx["test"]
+train_sampler = InSeedNodeNeighborSampler([-1, -1, -1, -1, -1, -1])
+seed_nodes_set = torch.randperm(len(train_idx))
+seed = seed_nodes_set[:len(train_idx)/6]
+src_nodes, dst_nodes, blocks = train_sampler.sample_blocks(graph, seed)
+

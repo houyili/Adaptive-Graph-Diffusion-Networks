@@ -16,7 +16,7 @@ import dgl.function as fn
 from dgl.dataloading import MultiLayerFullNeighborSampler, MultiLayerNeighborSampler, DataLoader
 from ogb.nodeproppred import DglNodePropPredDataset, Evaluator
 
-from edge_sample import EdgeSampleNeighborSampler
+from new_sample import EdgeSampleNeighborSampler, InSeedNodeNeighborSampler
 from gipa import GIPA
 from utils import get_cpu_list
 
@@ -175,22 +175,26 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running)
 
     # train_batch_size = (len(train_idx) + 9) // 10
     train_batch_size = (len(train_idx) + args.batch_rate - 1) // args.batch_rate
-    eval_batch_size = (len(val_idx) + len(test_idx) + args.eval_batch_rate - 1) // args.eval_batch_rate
+    eval_batch_size = (len(train_idx) + len(val_idx) + len(test_idx) + args.eval_batch_rate - 1) // args.eval_batch_rate
     # batch_size = len(train_idx)
 
     if args.sample_no_limit:
         sample_num = [-1] * args.n_layers
     else:
         sample_num = [args.sample1,args.sample2,args.sample3,args.sample4,args.sample5,args.sample6]
-    if args.edge_sample_rate > 0 and args.edge_sample_rate < 1:
+
+    if args.sample_type == "edge_rate_sample" and args.edge_sample_rate > 0 and args.edge_sample_rate < 1:
         train_sampler = EdgeSampleNeighborSampler(sample_num, args.edge_sample_rate, min_fanout=1)
         eval_sampler = EdgeSampleNeighborSampler(sample_num, 0.4, min_fanout=1)
+    elif args.sample_type == "in_seed_sample":
+        train_sampler = InSeedNodeNeighborSampler(sample_num)
+        eval_sampler = InSeedNodeNeighborSampler([3 * i if i > 0 else -1 for i in sample_num])
     else:
         train_sampler = MultiLayerNeighborSampler(sample_num)
-        eval_sampler = MultiLayerNeighborSampler([3*i if i > 0 else -1 for i in sample_num])
+        eval_sampler = MultiLayerNeighborSampler([3 * i if i > 0 else -1 for i in sample_num])
 
     train_dataloader = DataLoader(graph.cpu(), train_idx.cpu(), train_sampler, batch_size=train_batch_size, num_workers=10)
-    eval_dataloader =  DataLoader(graph.cpu(), torch.cat([val_idx.cpu(), test_idx.cpu()]),
+    eval_dataloader =  DataLoader(graph.cpu(), torch.cat([train_idx.cpu(), val_idx.cpu(), test_idx.cpu()]),
                                   eval_sampler,  batch_size=eval_batch_size, num_workers=10)
 
 
@@ -296,7 +300,7 @@ def main():
     argparser.add_argument("--agg-batch-norm", action="store_true", help="enable batch norm in agg")
     argparser.add_argument("--edge-att-act", type=str, default="leaky_relu", choices=["leaky_relu", "tanh", "softplus"])
     argparser.add_argument("--first-layer-hidden", type=int, default=150)
-    argparser.add_argument("--edge-sample-rate", type=float, default=0.0)
+    argparser.add_argument("--edge-sample-rate", type=float, default=0.1)
     argparser.add_argument("--sample-no-limit", action="store_true")
     argparser.add_argument("--sample1", type=int, default=32)
     argparser.add_argument("--sample2", type=int, default=32)
@@ -304,6 +308,8 @@ def main():
     argparser.add_argument("--sample4", type=int, default=32)
     argparser.add_argument("--sample5", type=int, default=32)
     argparser.add_argument("--sample6", type=int, default=32)
+    argparser.add_argument("--sample-type", type=str, default="neighbor_sample",
+                           choices=["neighbor_sample", "in_seed_sample", "edge_rate_sample"])
 
     args = argparser.parse_args()
     print(args)
