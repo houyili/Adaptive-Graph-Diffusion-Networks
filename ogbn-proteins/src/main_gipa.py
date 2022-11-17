@@ -16,7 +16,8 @@ import dgl.function as fn
 from dgl.dataloading import MultiLayerFullNeighborSampler, MultiLayerNeighborSampler, DataLoader
 from ogb.nodeproppred import DglNodePropPredDataset, Evaluator
 
-from new_sample import EdgeSampleNeighborSampler, InSeedNodeNeighborSampler, InSeedNodeFullNeighborSampler
+from new_sample import EdgeSampleNeighborSampler, InSeedNodeNeighborSampler, InSeedNodeFullNeighborSampler, \
+    InSeedNodeFullNeighborSampler2
 from gipa import GIPA
 from utils import get_cpu_list
 
@@ -194,6 +195,9 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running)
     elif args.sample_type == "in_seed_sample_full":
         train_sampler = InSeedNodeFullNeighborSampler(args.n_layers)
         eval_sampler = InSeedNodeFullNeighborSampler(args.n_layers)
+    elif args.sample_type == "in_seed_sample_full2":
+        train_sampler = InSeedNodeFullNeighborSampler2(args.n_layers)
+        eval_sampler = InSeedNodeFullNeighborSampler2(args.n_layers)
     else:
         train_sampler = MultiLayerNeighborSampler(sample_num)
         eval_sampler = MultiLayerNeighborSampler([3 * i if i > 0 else -1 for i in sample_num])
@@ -314,7 +318,7 @@ def main():
     argparser.add_argument("--sample5", type=int, default=32)
     argparser.add_argument("--sample6", type=int, default=32)
     argparser.add_argument("--sample-type", type=str, default="neighbor_sample",
-                           choices=["neighbor_sample", "in_seed_sample", "edge_rate_sample", "in_seed_sample_full"])
+                           choices=["neighbor_sample", "in_seed_sample", "edge_rate_sample", "in_seed_sample_full", "in_seed_sample_full2"])
 
     args = argparser.parse_args()
     print(args)

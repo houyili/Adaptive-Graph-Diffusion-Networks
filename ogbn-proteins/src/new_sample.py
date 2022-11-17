@@ -105,3 +105,21 @@ class InSeedNodeFullNeighborSampler(NeighborSampler):
         return seed_nodes, output_nodes, blocks
 
 
+class InSeedNodeFullNeighborSampler2(InSeedNodeFullNeighborSampler):
+    def sample_blocks(self, g, seed_nodes, exclude_eids=None):
+        output_nodes = seed_nodes
+        blocks = []
+        frontier = g.sample_neighbors(
+            seed_nodes, -1, edge_dir=self.edge_dir, prob=self.prob,
+            replace=self.replace, output_device=self.output_device,
+            exclude_edges=exclude_eids)
+        edge_id = torch.nonzero(torch.isin(frontier.all_edges()[0], seed_nodes)).view(-1)
+        sub_frontier = dgl.edge_subgraph(frontier, edge_id, relabel_nodes=False, store_ids=False)
+        eid = sub_frontier.edata[EID]
+        block = dgl.to_block(sub_frontier, seed_nodes)
+        block.edata[EID] = eid
+        seed_nodes = block.srcdata[NID]
+        for i in range(self._layer_num):
+            blocks.insert(0, block)
+        return seed_nodes, output_nodes, blocks
+
