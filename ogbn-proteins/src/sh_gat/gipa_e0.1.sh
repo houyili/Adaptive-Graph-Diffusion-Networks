@@ -9,7 +9,7 @@ python -u ../main_gipa.py \
           --cpu-start-from 40 \
           --sample-no-limit \
           --sample-type edge_rate_sample\
-          --edge-sample-rate 0.10 \
+          --edge-sample-rate 0.08 \
           --agg-batch-norm \
           --edge-att-act softplus \
           --n-heads 20 \

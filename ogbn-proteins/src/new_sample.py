@@ -57,7 +57,7 @@ class InSeedNodeNeighborSampler(NeighborSampler):
         print("Init %s" % str(self.__class__))
 
     def sample_blocks(self, g, seed_nodes, exclude_eids=None):
-        output_nodes = None
+        output_nodes = seed_nodes
         blocks = []
         for fanout in reversed(self.fanouts):
             frontier = g.sample_neighbors(
