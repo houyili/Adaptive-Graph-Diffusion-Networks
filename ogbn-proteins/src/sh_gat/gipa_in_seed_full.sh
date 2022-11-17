@@ -6,7 +6,7 @@ python -u ../main_gipa.py \
           --n-hidden 50 \
           --batch_rate 10 \
           --root "/data/ogb/datasets/"\
-          --cpu-start-from 65 \
+          --cpu-start-from 75 \
           --sample-no-limit \
           --sample-type in_seed_sample_full\
           --agg-batch-norm \
