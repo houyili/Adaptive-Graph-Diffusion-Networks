@@ -2,6 +2,7 @@ import torch
 import dgl
 from dgl.base import EID,NID
 from dgl.dataloading import NeighborSampler
+
 class EdgeSampleNeighborSampler(NeighborSampler):
     def __init__(self, fanouts, edge_sample_rate, edge_dir='in', prob=None, replace=False,
                  prefetch_node_feats=None, prefetch_labels=None, prefetch_edge_feats=None,
@@ -14,6 +15,7 @@ class EdgeSampleNeighborSampler(NeighborSampler):
         assert edge_sample_rate > 0.001 and edge_sample_rate <= 1
         self._sample_rate = edge_sample_rate
         self._min_fanout = min_fanout
+
     def sample_blocks(self, g, seed_nodes, exclude_eids=None):
         output_nodes = seed_nodes
         blocks = []
