@@ -28,7 +28,7 @@ n_node_feats, n_edge_feats, n_classes = 0, 8, 112
 
 
 def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx, criterion, optimizer, _evaluator):
-    # model.to(device)
+    model.to(device)
     model.train()
 
     loss_sum, total = 0, 0
@@ -152,10 +152,10 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
 @torch.no_grad()
 def evaluate(args, graph, model, dataloader, labels, train_idx, val_idx, test_idx, criterion, evaluator):
     torch.cuda.empty_cache()
-    # model.to(device_cpu)
+    model.cpu()
     model.eval()
 
-    preds = torch.zeros(labels.shape).to(device)
+    preds = torch.zeros(labels.shape).to(device_cpu)
 
     # Due to the memory capacity constraints, we use sampling for inference and calculate the average of the predictions 'eval_times' times.
 
@@ -174,7 +174,7 @@ def evaluate(args, graph, model, dataloader, labels, train_idx, val_idx, test_id
 
         if args.sample_type in ["random_cluster", "khop_sample"]:
             for batch_nodes, subgraph in random_partition_v2(args.eval_partition_num, graph, shuffle=False):
-                subgraph = subgraph.to(device)
+                subgraph = subgraph.to(device_cpu)
                 new_train_idx = torch.arange(len(batch_nodes))
                 # label_idx = new_train_idx[np.isin(batch_nodes, train_idx.cpu())]
 

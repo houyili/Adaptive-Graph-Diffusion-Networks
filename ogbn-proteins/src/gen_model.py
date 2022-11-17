@@ -109,7 +109,6 @@ def gen_model(args, n_node_feats, n_edge_feats, n_classes):
             edge_att_act=args.edge_att_act, edge_agg_mode=args.edge_agg_mode,
             conv_kernel=kernel
         )
-
     return model
 
 
