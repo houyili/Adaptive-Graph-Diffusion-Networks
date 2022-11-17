@@ -4,7 +4,7 @@ python -u ../main_gipa.py \
           --gpu 3 \
           --lr 0.01 \
           --n-hidden 50 \
-          --batch_rate 6 \
+          --batch_rate 10 \
           --root "/data/ogb/datasets/"\
           --cpu-start-from 65 \
           --sample-no-limit \
@@ -12,6 +12,6 @@ python -u ../main_gipa.py \
           --agg-batch-norm \
           --edge-att-act softplus \
           --n-heads 20 \
-          --eval-batch-rate 2 \
+          --eval-batch-rate 3 \
           --edge-drop 0.0 \
           --dropout 0.4
