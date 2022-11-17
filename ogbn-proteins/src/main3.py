@@ -373,7 +373,7 @@ def main():
     argparser.add_argument("--hop-attn-drop", type=float, default=0.0, help="hop-wise attention dropout rate")
     argparser.add_argument("--edge-drop", type=float, default=0.1, help="edge drop rate")
     argparser.add_argument("--wd", type=float, default=0, help="weight decay")
-    argparser.add_argument("--eval-every", type=int, default=5, help="evaluate every EVAL_EVERY epochs")
+    argparser.add_argument("--eval-every", type=int, default=2, help="evaluate every EVAL_EVERY epochs")
     argparser.add_argument("--log-every", type=int, default=5, help="log every LOG_EVERY epochs")
     argparser.add_argument("--plot", action="store_true", help="plot learning curves")
     argparser.add_argument("--save-pred", action="store_true", help="save final predictions")
