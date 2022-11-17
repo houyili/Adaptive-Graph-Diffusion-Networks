@@ -55,6 +55,7 @@ class InSeedNodeNeighborSampler(NeighborSampler):
                          prefetch_edge_feats=prefetch_edge_feats,
                          output_device=output_device)
         print("Init %s" % str(self.__class__))
+
     def sample_blocks(self, g, seed_nodes, exclude_eids=None):
         output_nodes = None
         blocks = []
@@ -65,8 +66,9 @@ class InSeedNodeNeighborSampler(NeighborSampler):
                 exclude_edges=exclude_eids)
             edge_id = torch.nonzero(torch.isin(frontier.all_edges()[0], seed_nodes)).view(-1)
             sub_frontier = dgl.edge_subgraph(frontier, edge_id, relabel_nodes=False, store_ids=False)
+            eid = sub_frontier.edata[EID]
             block = dgl.to_block(sub_frontier, seed_nodes)
-            block.edata[EID] = sub_frontier.edata[EID]
+            block.edata[EID] = eid
             seed_nodes = block.srcdata[NID]
             blocks.insert(0, block)
         return seed_nodes, output_nodes, blocks

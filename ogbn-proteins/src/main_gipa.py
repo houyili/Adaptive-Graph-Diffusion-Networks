@@ -84,7 +84,7 @@ def gen_model(args):
         input_drop=args.input_drop,
         attn_drop=args.attn_drop,
         edge_drop=args.edge_drop, first_layer_hidden=args.first_layer_hidden,
-        use_attn_dst=not args.no_attn_dst,
+        use_attn_dst=not args.no_attn_dst, allow_zero_in_degree=True,
         agg_batch_norm=args.agg_batch_norm, edge_att_act=args.edge_att_act
     )
 
@@ -177,6 +177,8 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running)
     train_batch_size = (len(train_idx) + args.batch_rate - 1) // args.batch_rate
     eval_batch_size = (len(train_idx) + len(val_idx) + len(test_idx) + args.eval_batch_rate - 1) // args.eval_batch_rate
     # batch_size = len(train_idx)
+    print("train_batch_size%d" %train_batch_size)
+    print("eval_batch_size%d" % eval_batch_size)
 
     if args.sample_no_limit:
         sample_num = [-1] * args.n_layers
