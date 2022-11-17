@@ -9,7 +9,7 @@ python -u ../main2.py \
     --advanced-optimizer \
     --n-epochs 1500 \
     --n-heads 50 \
-    --n-layers 5 \
+    --n-layers 4 \
     --weight-style sum \
     --dropout 0.4 \
     --n-hidden 20 \
