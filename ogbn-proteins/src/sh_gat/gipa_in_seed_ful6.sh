@@ -12,7 +12,7 @@ python -u ../main_gipa.py \
           --agg-batch-norm \
           --edge-att-act softplus \
           --n-heads 20 \
-          --eval-batch-rate 3 \
+          --eval-batch-rate 2 \
           --edge-drop 0.0 \
           --dropout 0.4 \
           --n-layers 5
