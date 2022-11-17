@@ -134,6 +134,7 @@ def train(args, model, dataloader, _labels, _train_idx, criterion, optimizer, _e
 
 @torch.no_grad()
 def evaluate(args, model, dataloader, labels, train_idx, val_idx, test_idx, criterion, evaluator):
+    torch.cuda.empty_cache()
     model.eval()
 
     preds = torch.zeros(labels.shape).to(device)
