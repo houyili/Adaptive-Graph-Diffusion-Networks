@@ -1,7 +1,7 @@
 cd "$(dirname $0)"
 python -u ../main_gipa.py \
           --n-runs 10 \
-          --gpu 3 \
+          --gpu 4 \
           --lr 0.01 \
           --n-hidden 50 \
           --batch_rate 10 \
