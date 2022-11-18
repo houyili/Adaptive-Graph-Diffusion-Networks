@@ -11,7 +11,7 @@ python -u ../main3.py \
     --n-heads 20 \
     --n-layers 6 \
     --dropout 0.4 \
-    --n-hidden 480 \
+    --n-hidden 460 \
     --input-drop 0.1 \
     --norm none \
     --K 1 --edge-agg-mode "none_softmax" --edge-att-act="softplus"\
