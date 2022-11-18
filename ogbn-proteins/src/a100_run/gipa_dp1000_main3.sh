@@ -18,5 +18,5 @@ python -u ../main3.py \
     --hop-attn-drop 0. \
     --edge-drop 0.1 \
     --norm none \
-    --K 1 --edge-agg-mode "none_softmax" --edge-att-act="softplus" --norm="avg"\
+    --K 1 --edge-agg-mode "none_softmax" --edge-att-act="softplus"\
     --gpu 1 --root "/data/ogb/datasets/" --log-file-name="gipa_dp1000_main3"
