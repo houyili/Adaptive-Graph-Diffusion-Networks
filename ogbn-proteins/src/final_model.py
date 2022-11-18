@@ -124,7 +124,7 @@ class GIPAConv(nn.Module):
                 graph.apply_edges(fn.copy_u("attn_src", "attn_node"))
             # edge attention
             e = graph.edata["attn_node"]
-            if feat_edge is not None:
+            if feat_edge is not None and self.attn_edge_fc is not None:
                 attn_edge = self.attn_edge_fc(feat_edge)
                 graph.edata.update({"attn_edge": attn_edge})
                 e += graph.edata["attn_edge"]

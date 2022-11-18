@@ -130,7 +130,7 @@ def gen_model(args, n_node_feats, n_edge_feats, n_classes):
             batch_norm=not args.disable_fea_trans_norm,
             edge_att_act=args.edge_att_act, edge_agg_mode=args.edge_agg_mode,
             first_hidden=args.first_hidden,
-            use_att_edge=args.use_att_edge,
+            use_att_edge= not args.disable_att_edge,
             use_prop_edge=args.use_prop_edge
         )
     return model
