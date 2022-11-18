@@ -51,7 +51,6 @@ class GIPAConv2(nn.Module):
 
         # propagation src feature
         self.prop_src_fc = nn.Linear(node_feats, out_feats, bias=False)
-        self.prop_src_fc_2 = nn.Linear(out_feats, out_feats, bias=False)
 
         # attn fc
         self.attn_src_fc = nn.Linear(node_feats, out_feats, bias=False)
@@ -97,7 +96,6 @@ class GIPAConv2(nn.Module):
     def reset_parameters(self):
         gain = nn.init.calculate_gain("relu")
         nn.init.xavier_normal_(self.prop_src_fc.weight, gain=gain)
-        nn.init.xavier_normal_(self.prop_src_fc_2.weight, gain=gain)
         nn.init.xavier_normal_(self.apply_dst_fc.weight, gain=gain)
         nn.init.xavier_normal_(self.apply_fc.weight, gain=gain)
         nn.init.xavier_normal_(self.attn_src_fc.weight, gain=gain)
@@ -109,7 +107,6 @@ class GIPAConv2(nn.Module):
             nn.init.xavier_normal_(self.attn_edge_fc.weight, gain=gain)
             # nn.init.zeros_(self.attn_edge_fc.bias)
         nn.init.xavier_normal_(self.agg_fc.weight, gain=gain)
-        nn.init.zeros_(self.agg_fc.bias)
 
         if self._use_prop_edge and self._edge_prop_size > 0:
             nn.init.xavier_normal_(self.prop_src_fc_e.weight, gain=gain)
@@ -142,7 +139,6 @@ class GIPAConv2(nn.Module):
 
             # propagation value prepare
             feat_src_fc = self.prop_src_fc(feat_src)
-            feat_src_fc = self.prop_src_fc_2(self.leaky_relu(feat_src_fc))
             graph.srcdata.update({"_feat_src_fc": feat_src_fc})
 
             # src node attention

@@ -15,4 +15,5 @@ python -u ../main3.py \
     --input-drop 0.1 \
     --norm none \
     --K 0 --edge-agg-mode "none_softmax" --edge-att-act="softplus"\
-    --gpu 3 --root "/data/ogb/datasets/" --log-file-name="gipa2_dp400_main3"
+    --gpu 4 --root "/data/ogb/datasets/" --log-file-name="gipa2_dp400_main3_2" \
+    --first-hidden 400
