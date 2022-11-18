@@ -1,5 +1,5 @@
 cd "$(dirname $0)"
-python -u ./main.py \
+python -u ../main2.py \
     --model gipa_sm \
     --sample-type random_cluster \
     --train-partition-num 6 \
@@ -17,5 +17,8 @@ python -u ./main.py \
     --attn-drop 0. \
     --hop-attn-drop 0. \
     --edge-drop 0.1 \
-    --K 1 --edge-agg-mode "none_softmax" --edge-att-act="softplus" --norm="avg" --edge-emb-size 0\
-    --gpu 6 --root "/data/ogb/datasets/" --log-file-name="gipa_sm_softplus_k1_head20"
+    --K 1 --edge-agg-mode "none_softmax" --edge-att-act="softplus" --norm="avg" \
+    --edge-emb-size 0\
+    --gpu 0 \
+    --root "/data/ogb/datasets/" \
+    --log-file-name="gipa_sm_softplus_k1_head20_noe"
