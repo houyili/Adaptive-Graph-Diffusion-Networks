@@ -530,6 +530,8 @@ class AGDN(nn.Module):
         if edge_emb > 0:
             self.edge_encoder = nn.ModuleList()
             self.edge_norms = nn.ModuleList()
+        else:
+            self.edge_encoder = None
 
         for i in range(n_layers):
             in_hidden = n_heads * n_hidden if i > 0 else n_hidden
