@@ -133,7 +133,8 @@ def gen_model(args, n_node_feats, n_edge_feats, n_classes):
             use_att_edge= not args.disable_att_edge,
             use_prop_edge=args.use_prop_edge
         )
-    if args.model == "gipa_deep":
+
+    if args.model == "gipa_para":
         model = GIPAPara(
             n_node_feats_,
             n_edge_feats,
