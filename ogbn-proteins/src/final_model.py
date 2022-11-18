@@ -159,7 +159,7 @@ class GIPAConv(nn.Module):
             else:
                 graph.update_all(fn.u_mul_e("feat_src_fc", "a", "m"), fn.sum("m", "feat_src_fc"))
             msg_sum = graph.dstdata["feat_src_fc"]
-
+            print(msg_sum.size())
             # aggregation function
             rst = self.agg_function(msg_sum, 0)
 
