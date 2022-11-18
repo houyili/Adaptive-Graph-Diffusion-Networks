@@ -141,13 +141,12 @@ class GIPAConv(nn.Module):
             graph.edata["a"] = torch.zeros_like(e)
 
             if self._edge_agg_mode == "both_softmax":
-                graph.edata["a"][eids] = self.attn_drop(torch.sqrt(
-                    edge_softmax(graph, e[eids], eids=eids, norm_by='dst').clamp(min=1e-9)
-                    * edge_softmax(graph, e[eids], eids=eids, norm_by='src').clamp(min=1e-9)))
+                graph.edata["a"][eids] = torch.sqrt(edge_softmax(graph, e[eids], eids=eids, norm_by='dst').clamp(min=1e-9)
+                    * edge_softmax(graph, e[eids], eids=eids, norm_by='src').clamp(min=1e-9))
             elif self._edge_agg_mode == "single_softmax":
-                graph.edata["a"][eids] = self.attn_drop((edge_softmax(graph, e[eids], eids=eids, norm_by='dst')))
+                graph.edata["a"][eids] = edge_softmax(graph, e[eids], eids=eids, norm_by='dst')
             else:
-                graph.edata["a"][eids] = self.attn_drop(e[eids])
+                graph.edata["a"][eids] = e[eids]
 
             if self._norm == "adj":
                 graph.edata["a"][eids] = graph.edata["a"][eids] * graph.edata["gcn_norm_adjust"][eids].view(-1, 1)
