@@ -442,5 +442,5 @@ class GIPAPara(nn.Module):
             h2 = self.activation(h2, inplace=True)
             h2 = self.dropout(h2)
 
-        pred = self.pred_linear(torch.cat(h, h2))
+        pred = self.pred_linear(torch.cat([h, h2], dim=-1))
         return pred
