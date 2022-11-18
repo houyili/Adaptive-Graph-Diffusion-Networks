@@ -133,7 +133,8 @@ bl_b.all_edges()[1].size()
 
 
 
-from new_sample import EdgeSampleNeighborSampler, InSeedNodeNeighborSampler
+from new_sample import EdgeSampleNeighborSampler, InSeedNodeNeighborSampler, InSeedNodeFullNeighborSampler, \
+    EdgeSampleMultiLayerNeighborSampler
 import torch
 import dgl
 from ogb.nodeproppred import DglNodePropPredDataset
@@ -141,10 +142,39 @@ root_path = "/data/ogb/datasets/"
 # root_path = "/Users/lihouyi/Documents/opensource/data_source/proteins"
 dataset = "ogbn-proteins"
 data = DglNodePropPredDataset(name=dataset, root=root_path)
-graph, labels = data[0]
-seed_nodes = torch.arange(10, 13000)
-train_sampler = EdgeSampleNeighborSampler([-1, -1, -1, -1, -1, -1], 0.2)
-frontier = train_sampler.sample_blocks(graph, seed_nodes)
+graph, _ = data[0]
+splitted_idx = data.get_idx_split()
+train_idx, val_idx, test_idx = splitted_idx["train"], splitted_idx["valid"], splitted_idx["test"]
+seed_nodes = torch.randperm(len(train_idx))
+train_sampler = EdgeSampleNeighborSampler([-1, -1, -1, -1, -1, -1], 0.18)
+frontier = train_sampler.sample_blocks(graph, seed_nodes[0:10000])
+
+train_sampler_4 = InSeedNodeFullNeighborSampler(6)
+frontier_4 = train_sampler_4.sample_blocks(graph, seed_nodes[0:10000])
+
+train_sampler_5 = EdgeSampleMultiLayerNeighborSampler(fanouts=[-1, -1, -1, -1, -1, -1], edge_sample_rate=[0.04, 0.04, 0.04, 0.04, 0.04, 0.02])
+frontier_5 = train_sampler_5.sample_blocks(graph, seed_nodes[0:14000])
+
+import numpy as np
+def random_partition_test(num_clusters, graph, shuffle=True, save_e=[]):
+    """random partition v2"""
+    if shuffle:
+        cluster_id = np.random.randint(low=0, high=num_clusters, size=graph.num_nodes())
+    else:
+        if not save_e:
+            cluster_id = np.random.randint(low=0, high=num_clusters, size=graph.num_nodes())
+            save_e.append(cluster_id)
+        else:
+            cluster_id = save_e[0]
+#         assert cluster_id is not None
+    perm = np.arange(0, graph.num_nodes())
+    batch_no = 0
+    batch_nodes = perm[cluster_id == batch_no]
+    sub_g = graph.subgraph(batch_nodes)
+    return sub_g
+
+random_graph = random_partition_test(6, graph)
+
 
 train_sampler_2 = dgl.dataloading.MultiLayerNeighborSampler([-1 for _ in range(6)])
 frontier_2 = train_sampler_2.sample_blocks(graph, seed_nodes)
@@ -154,9 +184,7 @@ frontier_3 = train_sampler_3.sample_blocks(graph, seed_nodes)
 
 
 splitted_idx = data.get_idx_split()
-train_idx, val_idx, test_idx = splitted_idx["train"], splitted_idx["valid"], splitted_idx["test"]
 train_sampler = InSeedNodeNeighborSampler([-1, -1, -1, -1, -1, -1])
 seed_nodes_set = torch.randperm(len(train_idx))
 seed = seed_nodes_set[:len(train_idx)/6]
 src_nodes, dst_nodes, blocks = train_sampler.sample_blocks(graph, seed)
-

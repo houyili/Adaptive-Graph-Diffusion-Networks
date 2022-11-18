@@ -17,7 +17,7 @@ from dgl.dataloading import MultiLayerFullNeighborSampler, MultiLayerNeighborSam
 from ogb.nodeproppred import DglNodePropPredDataset, Evaluator
 
 from new_sample import EdgeSampleNeighborSampler, InSeedNodeNeighborSampler, InSeedNodeFullNeighborSampler, \
-    InSeedNodeFullNeighborSampler2
+    InSeedNodeFullNeighborSampler2, EdgeSampleMultiLayerNeighborSampler
 from gipa import GIPA
 from utils import get_cpu_list
 
@@ -199,6 +199,11 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running)
     elif args.sample_type == "in_seed_sample_full2":
         train_sampler = InSeedNodeFullNeighborSampler2(args.n_layers)
         eval_sampler = InSeedNodeFullNeighborSampler2(args.n_layers)
+    elif args.sample_type == "edge_rate_multi":
+        train_sampler = EdgeSampleMultiLayerNeighborSampler(fanouts=[-1, -1, -1, -1, -1, -1],
+                                            edge_sample_rate=[0.03, 0.03, 0.03, 0.04, 0.05, 0.25])
+        eval_sampler = EdgeSampleMultiLayerNeighborSampler(fanouts=[-1, -1, -1, -1, -1, -1],
+                                                            edge_sample_rate=[0.25, 0.25,  0.25, 0.25, 0.25, 0.5])
     else:
         train_sampler = MultiLayerNeighborSampler(sample_num)
         eval_sampler = MultiLayerNeighborSampler([3 * i if i > 0 else -1 for i in sample_num])
@@ -319,7 +324,7 @@ def main():
     argparser.add_argument("--sample5", type=int, default=32)
     argparser.add_argument("--sample6", type=int, default=32)
     argparser.add_argument("--sample-type", type=str, default="neighbor_sample",
-                           choices=["neighbor_sample", "in_seed_sample", "edge_rate_sample", "in_seed_sample_full", "in_seed_sample_full2"])
+                           choices=["neighbor_sample", "in_seed_sample", "edge_rate_sample", "in_seed_sample_full", "in_seed_sample_full2", "edge_rate_multi"])
 
     args = argparser.parse_args()
     print(args)
