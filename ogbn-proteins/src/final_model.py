@@ -115,6 +115,8 @@ class GIPAConv(nn.Module):
             # src node attention
             attn_src = self.attn_src_fc(feat_src)
             graph.srcdata.update({"attn_src": attn_src})
+
+
             # dst node attention
             if self.attn_dst_fc is not None:
                 attn_dst = self.attn_dst_fc(feat_dst)
@@ -131,7 +133,7 @@ class GIPAConv(nn.Module):
             e = self.edge_att_actv(e)
 
             if self._edge_agg_mode == "both_softmax":
-                graph.edata["a"] = torch.sqrt(edge_softmax(graph, e,  norm_by='dst').clamp(min=1e-9) *
+                graph.edata["a"] = torch.sqrt(edge_softmax(graph, e, norm_by='dst').clamp(min=1e-9) *
                                               edge_softmax(graph, e, norm_by='src').clamp(min=1e-9))
             elif self._edge_agg_mode == "single_softmax":
                 graph.edata["a"] = edge_softmax(graph, e, norm_by='dst')
@@ -139,9 +141,9 @@ class GIPAConv(nn.Module):
                 graph.edata["a"] = e
 
             if self._norm == "adj":
-                graph.edata["a"] = graph.edata["a"] * graph.edata["gcn_norm_adjust"]
+                graph.edata["a"] = graph.edata["a"] * graph.edata["gcn_norm_adjust"].view(-1, 1)
             if self._norm == "avg":
-                graph.edata["a"] = (graph.edata["a"] * graph.edata["gcn_norm"]) / 2
+                graph.edata["a"] = (graph.edata["a"] * graph.edata["gcn_norm"].view(-1, 1)) / 2
 
             if self.prop_edge_fc is not None and feat_edge is not None:
                 graph.edata["m"] = graph.edata["a"] * graph.edata["prop_edge"]
