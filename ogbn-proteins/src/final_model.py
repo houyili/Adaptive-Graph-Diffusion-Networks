@@ -8,7 +8,6 @@ from dgl.utils import expand_as_pair
 from new_models import GIPASMConv
 from utils import get_act_by_str
 
-
 class GIPAConv(nn.Module):
     def __init__(
             self,
@@ -146,7 +145,7 @@ class GIPAConv(nn.Module):
             if self._norm == "adj":
                 graph.edata["_a"] = graph.edata["_a"] * graph.edata["gcn_norm_adjust"].view(-1, 1)
             if self._norm == "avg":
-                graph.edata["_a"] = (graph.edata["_a"] + graph.edata["gcn_norm"].view(-1, 1)) / 2
+                graph.edata["_a"] = (graph.edata["_a"] * graph.edata["gcn_norm"].view(-1, 1)) / 2
 
             if self.prop_edge_fc is not None and feat_edge is not None:
                 graph.edata["_m"] = graph.edata["_a"] * graph.edata["_prop_edge"]
@@ -164,7 +163,6 @@ class GIPAConv(nn.Module):
             if self.activation is not None:
                 rst = self.activation(rst, inplace=True)
             return rst
-
 
 class GIPADeep(nn.Module):
     def __init__(
