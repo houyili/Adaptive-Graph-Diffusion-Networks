@@ -355,7 +355,7 @@ class GIPAPara(nn.Module):
                 GIPASMConv(
                     in_hidden2,
                     edge_emb,
-                    out_hidden2,
+                    n_hidden_per_head,
                     n_heads=n_heads,
                     K=1,
                     attn_drop=0.0,
