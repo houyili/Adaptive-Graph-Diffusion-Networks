@@ -133,26 +133,18 @@ class GIPAConv(nn.Module):
 
             e = self.edge_att_actv(e)
 
-            if self.training and self.edge_drop > 0:
-                perm = torch.randperm(graph.number_of_edges(), device=e.device)
-                bound = int(graph.number_of_edges() * self.edge_drop)
-                eids = perm[bound:]
-            else:
-                eids = torch.arange(graph.number_of_edges(), device=e.device)
-            graph.edata["a"] = torch.zeros_like(e)
-
             if self._edge_agg_mode == "both_softmax":
-                graph.edata["a"][eids] = torch.sqrt(edge_softmax(graph, e[eids], eids=eids, norm_by='dst').clamp(min=1e-9)
-                    * edge_softmax(graph, e[eids], eids=eids, norm_by='src').clamp(min=1e-9))
+                graph.edata["a"] = torch.sqrt(edge_softmax(graph, e,  norm_by='dst').clamp(min=1e-9)
+                    * edge_softmax(graph, e,  norm_by='src').clamp(min=1e-9))
             elif self._edge_agg_mode == "single_softmax":
-                graph.edata["a"][eids] = edge_softmax(graph, e[eids], eids=eids, norm_by='dst')
+                graph.edata["a"] = edge_softmax(graph, e, norm_by='dst')
             else:
-                graph.edata["a"][eids] = e[eids]
+                graph.edata["a"] = e
 
             if self._norm == "adj":
-                graph.edata["a"][eids] = graph.edata["a"][eids] * graph.edata["gcn_norm_adjust"][eids].view(-1, 1)
+                graph.edata["a"] = graph.edata["a"] * graph.edata["gcn_norm_adjust"].view(-1, 1)
             if self._norm == "avg":
-                graph.edata["a"][eids] = (graph.edata["a"][eids] + graph.edata["gcn_norm"][eids].view(-1, 1)) / 2
+                graph.edata["a"] = (graph.edata["a"] + graph.edata["gcn_norm"].view(-1, 1)) / 2
 
             if self.prop_edge_fc is not None and feat_edge is not None:
                 graph.edata["m"] = graph.edata["a"] * graph.edata["prop_edge"]
@@ -160,7 +152,7 @@ class GIPAConv(nn.Module):
             else:
                 graph.update_all(fn.u_mul_e("feat_src_fc", "a", "m"), fn.sum("m", "feat_src_fc"))
             msg_sum = graph.dstdata["feat_src_fc"]
-            print(msg_sum.size())
+            # print(msg_sum.size())
             # aggregation function
             rst = self.agg_function(msg_sum, 0)
 

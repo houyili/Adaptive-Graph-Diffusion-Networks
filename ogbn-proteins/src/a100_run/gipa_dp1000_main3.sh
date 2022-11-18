@@ -12,7 +12,7 @@ python -u ../main3.py \
     --n-layers 6 \
     --weight-style sum \
     --dropout 0.4 \
-    --n-hidden 500 \
+    --n-hidden 1000 \
     --input-drop 0.1 \
     --attn-drop 0. \
     --hop-attn-drop 0. \
