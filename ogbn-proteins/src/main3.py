@@ -409,6 +409,7 @@ def main():
     argparser.add_argument("--use-prop-edge", action="store_true")
     argparser.add_argument("--edge-emb-size", type=int, default=16)
     argparser.add_argument("--n-hidden-per-head", type=int, default=30)
+    argparser.add_argument("--edge-prop-size", type=int, default=0)
     args = argparser.parse_args()
     print(args)
 

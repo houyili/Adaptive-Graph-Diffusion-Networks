@@ -8,7 +8,7 @@ from dgl.utils import expand_as_pair
 from new_models import GIPASMConv
 from utils import get_act_by_str
 
-class GIPA2Conv(nn.Module):
+class GIPAConv2(nn.Module):
     def __init__(
             self,
             node_feats,
@@ -26,9 +26,10 @@ class GIPA2Conv(nn.Module):
             edge_att_act="leaky_relu",
             edge_agg_mode="both_softmax",
             use_att_edge=True,
-            use_prop_edge=False
+            use_prop_edge=False,
+            edge_prop_size = 20
     ):
-        super(GIPA2Conv, self).__init__()
+        super(GIPAConv2, self).__init__()
         self._n_heads = n_heads
         self._in_src_feats, self._in_dst_feats = expand_as_pair(node_feats)
         self._out_feats = out_feats
@@ -38,50 +39,67 @@ class GIPA2Conv(nn.Module):
         self._weight_style = weight_style
         self._edge_agg_mode = edge_agg_mode
         self._edge_att_act = edge_att_act
+        self._use_prop_edge = use_prop_edge
+        self._edge_prop_size = edge_prop_size
 
         # optional fc
         self.prop_edge_fc = None
         self.attn_dst_fc = None
         self.attn_edge_fc = None
+        self.attn_dst_fc_e = None
+        self.attn_edge_fc_e = None
 
         # propagation src feature
-        self.src_fc = nn.Linear(self._in_src_feats, out_feats, bias=False)
-        if use_prop_edge:
-            self.prop_edge_fc = nn.Linear(edge_feats, out_feats, bias=False)
-
-        # apply function
-        self.dst_fc = nn.Linear(self._in_src_feats, out_feats)
+        self.prop_src_fc = nn.Linear(node_feats, out_feats, bias=False)
+        self.prop_src_fc_2 = nn.Linear(out_feats, out_feats, bias=False)
 
         # attn fc
-        self.attn_src_fc = nn.Linear(self._in_src_feats, out_feats, bias=False)
+        self.attn_src_fc = nn.Linear(node_feats, out_feats, bias=False)
         if use_attn_dst:
-            self.attn_dst_fc = nn.Linear(self._in_src_feats, out_feats, bias=False)
+            self.attn_dst_fc = nn.Linear(node_feats, out_feats, bias=False)
         if edge_feats > 0 and use_att_edge:
             self.attn_edge_fc = nn.Linear(edge_feats, out_feats, bias=False)
-            self.edge_norm = nn.BatchNorm1d(edge_feats)
 
+        # msg BN
         if batch_norm:
             self.offset, self.scale = nn.ParameterList(), nn.ParameterList()
             self.offset.append(nn.Parameter(torch.zeros(size=(1, n_heads, out_feats//n_heads))))
             self.scale.append(nn.Parameter(torch.ones(size=(1, n_heads, out_feats//n_heads))))
 
+        # agg function
+        self.agg_fc = nn.Linear(out_feats, out_feats)
+
+        # apply function
+        self.apply_dst_fc = nn.Linear(node_feats, out_feats)
+        self.apply_fc = nn.Linear(out_feats, out_feats)
+
+        if use_prop_edge and edge_prop_size > 0:
+            self.prop_edge_fc = nn.Linear(edge_feats, edge_prop_size, bias=False)
+            self.prop_src_fc_e = nn.Linear(node_feats, edge_prop_size)
+            self.attn_src_fc_e = nn.Linear(node_feats, edge_prop_size, bias=False)
+            if use_attn_dst:
+                self.attn_dst_fc_e = nn.Linear(node_feats, edge_prop_size, bias=False)
+            if edge_feats > 0 and use_att_edge:
+                self.attn_edge_fc_e = nn.Linear(edge_feats, edge_prop_size, bias=False)
+            if batch_norm:
+                self.offset.append(nn.Parameter(torch.zeros(size=(1, n_heads, edge_prop_size // n_heads))))
+                self.scale.append(nn.Parameter(torch.ones(size=(1, n_heads, edge_prop_size // n_heads))))
+            self.agg_fc_e = nn.Linear(edge_prop_size, out_feats)
+
         self.edge_drop = edge_drop
         self.leaky_relu = nn.LeakyReLU(negative_slope, inplace=True)
         self.edge_att_actv = get_act_by_str(edge_att_act, negative_slope)
         self.activation = activation
-        self.agg_fc = nn.Linear(out_feats, out_feats)
 
         print("Init %s" % str(self.__class__))
         self.reset_parameters()
 
     def reset_parameters(self):
         gain = nn.init.calculate_gain("relu")
-        nn.init.xavier_normal_(self.src_fc.weight, gain=gain)
-        if self.dst_fc is not None:
-            nn.init.xavier_normal_(self.dst_fc.weight, gain=gain)
-        if self.prop_edge_fc is not None:
-            nn.init.xavier_normal_(self.prop_edge_fc.weight, gain=gain)
-
+        nn.init.xavier_normal_(self.prop_src_fc.weight, gain=gain)
+        nn.init.xavier_normal_(self.prop_src_fc_2.weight, gain=gain)
+        nn.init.xavier_normal_(self.apply_dst_fc.weight, gain=gain)
+        nn.init.xavier_normal_(self.apply_fc.weight, gain=gain)
         nn.init.xavier_normal_(self.attn_src_fc.weight, gain=gain)
         # nn.init.zeros_(self.attn_src_fc.bias)
         if self.attn_dst_fc is not None:
@@ -91,6 +109,18 @@ class GIPA2Conv(nn.Module):
             nn.init.xavier_normal_(self.attn_edge_fc.weight, gain=gain)
             # nn.init.zeros_(self.attn_edge_fc.bias)
         nn.init.xavier_normal_(self.agg_fc.weight, gain=gain)
+        nn.init.zeros_(self.agg_fc.bias)
+
+        if self._use_prop_edge and self._edge_prop_size > 0:
+            nn.init.xavier_normal_(self.prop_src_fc_e.weight, gain=gain)
+            nn.init.xavier_normal_(self.prop_edge_fc.weight, gain=gain)
+            nn.init.xavier_normal_(self.attn_src_fc_e.weight, gain=gain)
+            if self.attn_dst_fc_e is not None:
+                nn.init.xavier_normal_(self.attn_dst_fc_e.weight, gain=gain)
+            if self.attn_edge_fc_e is not None:
+                nn.init.xavier_normal_(self.attn_edge_fc_e.weight, gain=gain)
+            nn.init.xavier_normal_(self.agg_fc_e.weight, gain=gain)
+            nn.init.zeros_(self.agg_fc_e.bias)
 
     def agg_function(self, h, idx):
         if self._batch_norm:
@@ -98,7 +128,10 @@ class GIPA2Conv(nn.Module):
             mean = h.mean(dim=-1).view(h.shape[0], self._n_heads, 1)
             var = h.var(dim=-1, unbiased=False).view(h.shape[0], self._n_heads, 1) + 1e-9
             h = (h - mean) * self.scale[idx] * torch.rsqrt(var) + self.offset[idx]
-        return self.agg_fc(h.view(-1, self._out_feats))
+        if idx == 0:
+            return self.agg_fc(h.view(-1, self._out_feats))
+        else:
+            return self.agg_fc_e(h.view(-1, self._edge_prop_size))
 
     def forward(self, graph, feat_src, feat_edge=None):
         with graph.local_scope():
@@ -108,11 +141,9 @@ class GIPA2Conv(nn.Module):
                 feat_dst = feat_src
 
             # propagation value prepare
-            feat_src_fc = self.src_fc(feat_src)
+            feat_src_fc = self.prop_src_fc(feat_src)
+            feat_src_fc = self.prop_src_fc_2(self.leaky_relu(feat_src_fc))
             graph.srcdata.update({"_feat_src_fc": feat_src_fc})
-            if self.prop_edge_fc is not None and feat_edge is not None:
-                graph.edata["_v"]  = self.prop_edge_fc(feat_edge)
-                graph.apply_edges(fn.u_add_e("_feat_src_fc", "_v", "_prop_edge"))
 
             # src node attention
             attn_src = self.attn_src_fc(feat_src)
@@ -131,7 +162,6 @@ class GIPA2Conv(nn.Module):
                 attn_edge = self.attn_edge_fc(feat_edge)
                 graph.edata.update({"_attn_edge": attn_edge})
                 e += graph.edata["_attn_edge"]
-
             e = self.edge_att_actv(e)
 
             if self._edge_agg_mode == "both_softmax":
@@ -147,24 +177,67 @@ class GIPA2Conv(nn.Module):
             if self._norm == "avg":
                 graph.edata["_a"] = (graph.edata["_a"] * graph.edata["gcn_norm"].view(-1, 1)) / 2
 
-            if self.prop_edge_fc is not None and feat_edge is not None:
-                graph.edata["_m"] = graph.edata["_a"] * graph.edata["_prop_edge"]
-                graph.update_all(fn.copy_e("_m", "_m_copy"), fn.sum("_m_copy", "_feat_src_fc"))
-            else:
-                graph.update_all(fn.u_mul_e("_feat_src_fc", "_a", "_m"), fn.sum("_m", "_feat_src_fc"))
+            graph.update_all(fn.u_mul_e("_feat_src_fc", "_a", "_m"), fn.sum("_m", "_feat_src_fc"))
             msg_sum = graph.dstdata["_feat_src_fc"]
             # print(msg_sum.size())
             # aggregation function
             rst = self.agg_function(msg_sum, 0)
 
+            if self._use_prop_edge and self._edge_prop_size > 0:
+                graph.edata["_v"]  = self.prop_edge_fc(feat_edge)
+                feat_src_fc_e = self.prop_src_fc_e(feat_src)
+                graph.srcdata.update({"_feat_src_fc_e": feat_src_fc_e})
+                graph.apply_edges(fn.u_add_e("_feat_src_fc_e", "_v", "_prop_edge"))
+
+                # src node attention
+                attn_src_e = self.attn_src_fc_e(feat_src)
+                graph.srcdata.update({"_attn_src_e": attn_src_e})
+
+                # dst node attention
+                if self.attn_dst_fc is not None:
+                    attn_dst_e = self.attn_dst_fc_e(feat_dst)
+                    graph.dstdata.update({"_attn_dst_e": attn_dst_e})
+                    graph.apply_edges(fn.u_add_v("_attn_src_e", "_attn_dst_e", "_attn_node_e"))
+                else:
+                    graph.apply_edges(fn.copy_u("_attn_src_e", "_attn_node_e"))
+
+                e_e = graph.edata["_attn_node_e"]
+                if self.attn_edge_fc is not None:
+                    attn_edge_e = self.attn_edge_fc_e(feat_edge)
+                    graph.edata.update({"_attn_edge_e": attn_edge_e})
+                    e_e += graph.edata["_attn_edge_e"]
+                e_e = self.edge_att_actv(e_e)
+
+                if self._edge_agg_mode == "both_softmax":
+                    graph.edata["_a_e"] = torch.sqrt(edge_softmax(graph, e_e, norm_by='dst').clamp(min=1e-9)
+                                                   * edge_softmax(graph, e_e, norm_by='src').clamp(min=1e-9))
+                elif self._edge_agg_mode == "single_softmax":
+                    graph.edata["_a_e"] = edge_softmax(graph, e_e, norm_by='dst')
+                else:
+                    graph.edata["_a_e"] = e_e
+
+                if self._norm == "adj":
+                    graph.edata["_a_e"] = graph.edata["_a_e"] * graph.edata["gcn_norm_adjust"].view(-1, 1)
+                if self._norm == "avg":
+                    graph.edata["_a_e"] = (graph.edata["_a_e"] * graph.edata["gcn_norm"].view(-1, 1)) / 2
+
+                graph.edata["_m_e"] = graph.edata["_a_e"] * graph.edata["_prop_edge"]
+                graph.update_all(fn.copy_e("_m_e", "_m_copy_e"), fn.sum("_m_copy_e", "_feat_src_fc_e"))
+                msg_sum_e = graph.dstdata["_feat_src_fc_e"]
+                rst_e = self.agg_function(msg_sum_e, 1)
+                rst += rst_e
+
             # apply function
-            if self.dst_fc is not None:
-                rst += self.dst_fc(feat_dst)
+            if self.apply_dst_fc is not None:
+                rst += self.apply_dst_fc(feat_dst)
+            rst = self.leaky_relu(rst)
+            rst = self.apply_fc(rst)
             if self.activation is not None:
                 rst = self.activation(rst, inplace=True)
+
             return rst
 
-class GIPA2Deep(nn.Module):
+class GIPADeep2(nn.Module):
     def __init__(
             self,
             node_feats,
@@ -185,7 +258,8 @@ class GIPA2Deep(nn.Module):
             batch_norm=True, edge_att_act="leaky_relu", edge_agg_mode="both_softmax",
             first_hidden = 150,
             use_att_edge=True,
-            use_prop_edge=False
+            use_prop_edge=False,
+            edge_prop_size = 20
     ):
         super().__init__()
         self.n_layers = n_layers
@@ -213,7 +287,7 @@ class GIPA2Deep(nn.Module):
                 self.edge_encoder.append(nn.Linear(edge_feats, edge_emb))
                 self.edge_norms.append(nn.BatchNorm1d(edge_emb))
             self.convs.append(
-                GIPA2Conv(
+                GIPAConv2(
                     in_hidden,
                     edge_emb,
                     out_hidden,
@@ -225,7 +299,8 @@ class GIPA2Deep(nn.Module):
                     batch_norm=batch_norm, edge_att_act=edge_att_act,
                     edge_agg_mode=edge_agg_mode,
                     use_att_edge=use_att_edge,
-                    use_prop_edge=use_prop_edge
+                    use_prop_edge=use_prop_edge,
+                    edge_prop_size = edge_prop_size
                 )
             )
             self.norms.append(nn.BatchNorm1d(out_hidden))
@@ -334,7 +409,7 @@ class GIPA2Para(nn.Module):
                 self.edge_encoder2.append(nn.Linear(edge_feats, edge_emb))
 
             self.convs.append(
-                GIPA2Conv(
+                GIPAConv2(
                     in_hidden,
                     edge_emb,
                     out_hidden,
