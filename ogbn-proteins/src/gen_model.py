@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 import torch.nn.functional as F
 
 from final_model import GIPADeep, GIPAPara
@@ -159,6 +160,14 @@ def gen_model(args, n_node_feats, n_edge_feats, n_classes):
         )
     return model
 
+
+def count_model_parameters(model:torch.nn.Module):
+    for p in model.parameters():
+        if p.requires_grad:
+            print(p.names)
+            print(p.size())
+    n_parameters = sum([np.prod(p.size()) for p in model.parameters() if p.requires_grad])
+    return n_parameters
 
 def count_parameters(args, n_node_feats, n_edge_feats, n_classes):
     model = gen_model(args, n_node_feats, n_edge_feats, n_classes)
