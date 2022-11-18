@@ -20,7 +20,7 @@ python -u ../main2.py \
     --K 1 \
     --edge-agg-mode "none_softmax" \
     --edge-att-act="softplus" \
-    --norm adv \
+    --norm avg \
     --edge-emb-size 16 \
     --gpu 0 \
     --root "/data/ogb/datasets/" \
