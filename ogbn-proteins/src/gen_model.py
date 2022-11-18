@@ -163,7 +163,7 @@ def gen_model(args, n_node_feats, n_edge_feats, n_classes):
 
 def count_model_parameters(model:torch.nn.Module):
     for name, parameters in model.named_parameters():
-        print(name, ':', parameters, parameters.size())
+        print(name, ':', parameters.size())
     n_parameters = sum([np.prod(p.size()) for p in model.parameters() if p.requires_grad])
     return n_parameters
 
