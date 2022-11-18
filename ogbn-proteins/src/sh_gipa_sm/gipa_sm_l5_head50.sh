@@ -9,7 +9,7 @@ python -u ../main2.py \
     --advanced-optimizer \
     --n-epochs 1500 \
     --n-heads 50 \
-    --n-layers 4 \
+    --n-layers 6 \
     --weight-style sum \
     --dropout 0.4 \
     --n-hidden 20 \
@@ -19,4 +19,4 @@ python -u ../main2.py \
     --edge-drop 0. \
     --norm none \
     --K 1 --edge-agg-mode "none_softmax" --edge-att-act="softplus" --norm="avg"\
-    --gpu 2 --root "/data/ogb/datasets/" --log-file-name="gipa_sm_softplus_k1_head20_5"
+    --gpu 0 --root "/share/lihouyi/ogb/datasets/" --log-file-name="gipa_sm_softplus_k1_head20_5"
