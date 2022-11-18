@@ -36,6 +36,12 @@ class GIPAConv(nn.Module):
         self._edge_agg_mode = edge_agg_mode
         self._edge_att_act = edge_att_act
 
+        # optional fc
+        self.prop_edge_fc = None
+        self.attn_dst_fc = None
+        self.attn_edge_fc = None
+        self.edge_norm = None
+
         # propagation src feature
         self.src_fc = nn.Linear(self._in_src_feats, out_feats, bias=False)
         if use_prop_edge:
