@@ -334,6 +334,7 @@ class GIPAPara(nn.Module):
             if edge_emb > 0:
                 self.edge_encoder.append(nn.Linear(edge_feats, edge_emb))
                 self.edge_encoder2.append(nn.Linear(edge_feats, edge_emb))
+
             self.convs.append(
                 GIPAConv(
                     in_hidden,
