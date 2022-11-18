@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from models import AGDN
-
+from dgl import function as fn
+from dgl.ops import edge_softmax
+from dgl.utils import expand_as_pair
 
 class GIPAConv(nn.Module):
     def __init__(
@@ -11,76 +12,59 @@ class GIPAConv(nn.Module):
             edge_feats,
             out_feats,
             n_heads=1,
-            K=3,
-            attn_drop=0.0,
-            hop_attn_drop=0.0,
             edge_drop=0.0,
             negative_slope=0.2,
-            residual=True,
             activation=None,
             use_attn_dst=True,
             allow_zero_in_degree=True,
             norm="none",
             batch_norm=True,
-            weight_style="HA", edge_att_act="leaky_relu", edge_agg_mode="both_softmax"
+            weight_style="HA",
+            edge_att_act="leaky_relu",
+            edge_agg_mode="both_softmax",
+            use_att_edge=True,
+            use_prop_edge=False
     ):
-        super(AGDNConv, self).__init__()
+        super(GIPAConv, self).__init__()
         self._n_heads = n_heads
         self._in_src_feats, self._in_dst_feats = expand_as_pair(node_feats)
         self._out_feats = out_feats
         self._allow_zero_in_degree = allow_zero_in_degree
         self._norm = norm
         self._batch_norm = batch_norm
-        self._K = K
         self._weight_style = weight_style
         self._edge_agg_mode = edge_agg_mode
         self._edge_att_act = edge_att_act
 
-        # feat fc
-        self.src_fc = nn.Linear(self._in_src_feats, out_feats * n_heads, bias=False)
-        if residual:
-            self.dst_fc = nn.Linear(self._in_src_feats, out_feats * n_heads)
-            self.bias = None
-        else:
-            self.dst_fc = self.src_fc
-            self.bias = nn.Parameter(torch.FloatTensor(size=(1, n_heads, out_feats)))
+        # propagation src feature
+        self.src_fc = nn.Linear(self._in_src_feats, out_feats, bias=False)
+        if use_prop_edge:
+            self.prop_edge_fc = nn.Linear(edge_feats, out_feats, bias=False)
+
+        # apply function
+        self.dst_fc = nn.Linear(self._in_src_feats, out_feats)
 
         # attn fc
-        self.attn_src_fc = nn.Linear(self._in_src_feats, n_heads, bias=False)
+        self.attn_src_fc = nn.Linear(self._in_src_feats, out_feats, bias=False)
         if use_attn_dst:
-            self.attn_dst_fc = nn.Linear(self._in_src_feats, n_heads, bias=False)
-        else:
-            self.attn_dst_fc = None
-        if edge_feats > 0:
-            self.attn_edge_fc = nn.Linear(edge_feats, n_heads, bias=False)
+            self.attn_dst_fc = nn.Linear(self._in_src_feats, out_feats, bias=False)
+        if edge_feats > 0 and use_att_edge:
+            self.attn_edge_fc = nn.Linear(edge_feats, out_feats, bias=False)
             self.edge_norm = nn.BatchNorm1d(edge_feats)
-        else:
-            self.attn_edge_fc = None
-            self.edge_norm = None
+
         if batch_norm:
             self.offset, self.scale = nn.ParameterList(), nn.ParameterList()
-            for _ in range(K + 1):
-                self.offset.append(nn.Parameter(torch.zeros(size=(1, n_heads, out_feats))))
-                self.scale.append(nn.Parameter(torch.ones(size=(1, n_heads, out_feats))))
-        self.attn_drop = nn.Dropout(attn_drop)
-        self.hop_attn_drop = hop_attn_drop
+            self.offset.append(nn.Parameter(torch.zeros(size=(1, out_feats))))
+            self.scale.append(nn.Parameter(torch.ones(size=(1, out_feats))))
+
         self.edge_drop = edge_drop
         self.leaky_relu = nn.LeakyReLU(negative_slope, inplace=True)
         self.edge_att_actv = nn.LeakyReLU(negative_slope,
                                           inplace=True) if edge_att_act == "leaky_relu" else nn.Softplus()
         self.edge_att_actv = nn.Tanh() if edge_att_act == "tanh" else self.edge_att_actv
         self.activation = activation
-        self.position_emb = nn.Parameter(torch.Tensor(K + 1, n_heads, out_feats))
-        if weight_style == "HA":
-            self.hop_attn_l = nn.Parameter(torch.FloatTensor(size=(n_heads, out_feats)))
-            self.hop_attn_l_bias = nn.Parameter(torch.FloatTensor(size=(n_heads, out_feats)))
-            self.hop_attn_r = nn.Parameter(torch.FloatTensor(size=(n_heads, out_feats)))
-            self.hop_attn_r_bias = nn.Parameter(torch.FloatTensor(size=(n_heads, out_feats)))
+        self.agg_fc = nn.Linear(out_feats, out_feats)
 
-        if weight_style == "HC":
-            self.weights = nn.Parameter(torch.FloatTensor(size=(1, n_heads, K, out_feats)))
-
-        # print("The new parameter are %s,%s,%s" % (self._batch_norm, edge_att_act, self._edge_agg_mode))
         print("Init %s" % str(self.__class__))
         self.reset_parameters()
 
@@ -89,6 +73,8 @@ class GIPAConv(nn.Module):
         nn.init.xavier_normal_(self.src_fc.weight, gain=gain)
         if self.dst_fc is not None:
             nn.init.xavier_normal_(self.dst_fc.weight, gain=gain)
+        if self.prop_edge_fc is not None:
+            nn.init.xavier_normal_(self.prop_edge_fc.weight, gain=gain)
 
         nn.init.xavier_normal_(self.attn_src_fc.weight, gain=gain)
         # nn.init.zeros_(self.attn_src_fc.bias)
@@ -98,143 +84,79 @@ class GIPAConv(nn.Module):
         if self.attn_edge_fc is not None:
             nn.init.xavier_normal_(self.attn_edge_fc.weight, gain=gain)
             # nn.init.zeros_(self.attn_edge_fc.bias)
+        nn.init.xavier_normal_(self.agg_fc.weight, gain=gain)
 
-        if self._weight_style == "HA":
-            nn.init.zeros_(self.hop_attn_l)
-            nn.init.zeros_(self.hop_attn_l_bias)
-            nn.init.zeros_(self.hop_attn_r)
-            nn.init.zeros_(self.hop_attn_r_bias)
-        for emb in self.position_emb:
-            nn.init.xavier_normal_(emb, gain=gain)
-        if self._weight_style == "HC":
-            nn.init.ones_(self.weights)
-            # nn.init.xavier_uniform_(self.weights, gain=gain)
-
-        if self.bias is not None:
-            nn.init.zeros_(self.bias)
-
-    def set_allow_zero_in_degree(self, set_value):
-        self._allow_zero_in_degree = set_value
-
-    def feat_trans(self, h, idx):
-
+    def agg_function(self, h, idx):
         if self._batch_norm:
-            mean = h.mean(dim=-1).view(h.shape[0], self._n_heads, 1)
-            var = h.var(dim=-1, unbiased=False).view(h.shape[0], self._n_heads, 1) + 1e-9
+            mean = h.mean(dim=-1)
+            var = h.var(dim=-1, unbiased=False) + 1e-9
             h = (h - mean) * self.scale[idx] * torch.rsqrt(var) + self.offset[idx]
-        h = h + self.position_emb[[idx], :, :]
-        return h
+        return self.agg_fc(h)
 
     def forward(self, graph, feat_src, feat_edge=None):
         with graph.local_scope():
-
             if graph.is_block:
                 feat_dst = feat_src[: graph.number_of_dst_nodes()]
             else:
                 feat_dst = feat_src
 
-            feat_src_fc = self.src_fc(feat_src).view(-1, self._n_heads, self._out_feats)
-            if self.dst_fc is not None:
-                feat_dst_fc = self.dst_fc(feat_dst).view(-1, self._n_heads, self._out_feats)
-            else:
-                feat_dst_fc = feat_src_fc
-            attn_src = self.attn_src_fc(feat_src).view(-1, self._n_heads, 1)
+            # propagation value prepare
+            feat_src_fc = self.src_fc(feat_src)
+            graph.srcdata.update({"feat_src_fc": feat_src_fc})
+            if self.prop_edge_fc is not None and feat_edge is not None:
+                graph.edata["v"]  = self.prop_edge_fc(feat_edge)
+                graph.apply_edges(fn.u_add_e("feat_src_fc", "v", "prop_edge"))
 
-            # NOTE: GAT paper uses "first concatenation then linear projection"
-            # to compute attention scores, while ours is "first projection then
-            # addition", the two approaches are mathematically equivalent:
-            # We decompose the weight vector a mentioned in the paper into
-            # [a_l || a_r], then
-            # a^T [Wh_i || Wh_j] = a_l Wh_i + a_r Wh_j
-            # Our implementation is much efficient because we do not need to
-            # save [Wh_i || Wh_j] on edges, which is not memory-efficient. Plus,
-            # addition could be optimized with DGL's built-in function u_add_v,
-            # which further speeds up computation and saves memory footprint.
-            graph.srcdata.update({"feat_src_fc": feat_src_fc, "attn_src": attn_src})
-
+            # src node attention
+            attn_src = self.attn_src_fc(feat_src)
+            graph.srcdata.update({"attn_src": attn_src})
+            # dst node attention
             if self.attn_dst_fc is not None:
-                attn_dst = self.attn_dst_fc(feat_dst).view(-1, self._n_heads, 1)
+                attn_dst = self.attn_dst_fc(feat_dst)
                 graph.dstdata.update({"attn_dst": attn_dst})
                 graph.apply_edges(fn.u_add_v("attn_src", "attn_dst", "attn_node"))
             else:
                 graph.apply_edges(fn.copy_u("attn_src", "attn_node"))
-
+            # edge attention
             e = graph.edata["attn_node"]
             if feat_edge is not None:
-                attn_edge = self.attn_edge_fc(feat_edge).view(-1, self._n_heads, 1)
+                attn_edge = self.attn_edge_fc(feat_edge)
                 graph.edata.update({"attn_edge": attn_edge})
                 e += graph.edata["attn_edge"]
-
             e = self.edge_att_actv(e)
 
-            if self.training and self.edge_drop > 0:
-                perm = torch.randperm(graph.number_of_edges(), device=e.device)
-                bound = int(graph.number_of_edges() * self.edge_drop)
-                eids = perm[bound:]
-            else:
-                eids = torch.arange(graph.number_of_edges(), device=e.device)
-            graph.edata["a"] = torch.zeros_like(e)
-
             if self._edge_agg_mode == "both_softmax":
-                graph.edata["a"][eids] = self.attn_drop(torch.sqrt(
-                    edge_softmax(graph, e[eids], eids=eids, norm_by='dst').clamp(min=1e-9)
-                    * edge_softmax(graph, e[eids], eids=eids, norm_by='src').clamp(min=1e-9)))
+                graph.edata["a"] = torch.sqrt(edge_softmax(graph, e,  norm_by='dst').clamp(min=1e-9) *
+                                              edge_softmax(graph, e, norm_by='src').clamp(min=1e-9))
             elif self._edge_agg_mode == "single_softmax":
-                graph.edata["a"][eids] = self.attn_drop((edge_softmax(graph, e[eids], eids=eids, norm_by='dst')))
+                graph.edata["a"] = edge_softmax(graph, e, norm_by='dst')
             else:
-                graph.edata["a"][eids] = self.attn_drop(e[eids])
+                graph.edata["a"] = e
 
             if self._norm == "adj":
-                graph.edata["a"][eids] = graph.edata["a"][eids] * graph.edata["gcn_norm_adjust"][eids].view(-1, 1, 1)
+                graph.edata["a"] = graph.edata["a"] * graph.edata["gcn_norm_adjust"]
             if self._norm == "avg":
-                graph.edata["a"][eids] = (graph.edata["a"][eids] + graph.edata["gcn_norm"][eids].view(-1, 1, 1)) / 2
+                graph.edata["a"] = (graph.edata["a"] * graph.edata["gcn_norm"]) / 2
 
-            # message passing
-            if self._weight_style == "HA":
-                h_0 = self.feat_trans(graph.dstdata["feat_src_fc"], 0)
-            hstack = []
-            for k in range(self._K):
-                graph.update_all(fn.u_mul_e("feat_src_fc", "a", "m"), fn.sum("m", "feat_src_fc"))
-                # graph.dstdata["feat_src_fc"] = graph.dstdata["feat_src_fc"] / graph.ndata["sub_deg"].view(-1, 1, 1)
-                hstack.append(graph.dstdata["feat_src_fc"])
-
-            hstack = torch.stack([self.feat_trans(h, k + 1) for k, h in enumerate(hstack)], dim=2)
-            if self._weight_style == "sum":
-                rst = hstack.sum(2)
-            if self._weight_style == "mean":
-                rst = hstack.mean(2)
-            if self._weight_style == "HC":
-                if self.training:
-                    mask = torch.rand_like(self.weights) > self.hop_attn_drop
-                else:
-                    mask = torch.ones_like(self.weights).bool()
-                weights = torch.ones_like(self.weights, device=self.weights.device)
-                weights[mask] = self.weights[mask]
-                rst = (hstack * weights).sum(2)
-            if self._weight_style == "HA":
-                a_l = (h_0.unsqueeze(2) * self.hop_attn_l.unsqueeze(0).unsqueeze(2)).sum(dim=-1, keepdim=True)
-                a = (hstack * self.hop_attn_r.unsqueeze(0).unsqueeze(2)).sum(dim=-1, keepdim=True)
-                a = a + a_l
-                # a = torch.sigmoid(a)
-                a = self.hop_attn_drop(a)
-                a = F.softmax(self.leaky_relu(a), dim=-2)
-                a = a.transpose(-2, -1)
-                rst = torch.matmul(a, hstack).squeeze(-2)
-
-            # residual
-            if self.dst_fc is not None:
-                rst += feat_dst_fc
+            if self.prop_edge_fc is not None and feat_edge is not None:
+                graph.edata["m"] = graph.edata["a"] * graph.edata["prop_edge"]
+                graph.update_all(fn.sum("m", "feat_src_fc"))
             else:
-                rst += self.bias
+                graph.update_all(fn.u_mul_e("feat_src_fc", "a", "m"), fn.sum("m", "feat_src_fc"))
+            msg_sum = graph.dstdata["feat_src_fc"]
 
-            # activation
+            # aggregation function
+            rst = self.agg_function(msg_sum, 0)
+
+            # apply function
+            if self.dst_fc is not None:
+                rst += self.dst_fc(feat_dst)
             if self.activation is not None:
                 rst = self.activation(rst, inplace=True)
-
             return rst
 
 
-class GIPA(AGDN):
+class GIPADeep(nn.Module):
     def __init__(
             self,
             node_feats,
@@ -247,28 +169,25 @@ class GIPA(AGDN):
             activation,
             dropout,
             input_drop,
-            attn_drop,
-            hop_attn_drop,
             edge_drop,
-            K=3,
             use_attn_dst=True,
             allow_zero_in_degree=False,
             norm="none",
             use_one_hot=False,
-            weight_style="HA",
-            batch_norm=True, edge_att_act="leaky_relu", edge_agg_mode="both_softmax"
+            batch_norm=True, edge_att_act="leaky_relu", edge_agg_mode="both_softmax",
+            first_hidden = 150,
+            use_att_edge=True,
+            use_prop_edge=False
     ):
-        super(AGDN, self).__init__()
+        super().__init__()
         self.n_layers = n_layers
-        self.n_heads = n_heads
         self.n_hidden = n_hidden
         self.n_classes = n_classes
 
         self.convs = nn.ModuleList()
         self.norms = nn.ModuleList()
 
-        self.node_encoder = nn.Linear(node_feats, 150)
-
+        self.node_encoder = nn.Linear(node_feats, first_hidden)
         if use_one_hot:
             self.one_hot_encoder = nn.Linear(8, 8)
         else:
@@ -279,7 +198,7 @@ class GIPA(AGDN):
             self.edge_norms = nn.ModuleList()
 
         for i in range(n_layers):
-            in_hidden = n_heads * n_hidden if i > 0 else 150
+            in_hidden =  n_hidden if i > 0 else first_hidden
             out_hidden = n_hidden
 
             if edge_emb > 0:
@@ -291,23 +210,62 @@ class GIPA(AGDN):
                     edge_emb,
                     out_hidden,
                     n_heads=n_heads,
-                    K=K,
-                    attn_drop=attn_drop,
-                    hop_attn_drop=hop_attn_drop,
                     edge_drop=edge_drop,
                     use_attn_dst=use_attn_dst,
-                    residual=True,
                     allow_zero_in_degree=allow_zero_in_degree,
                     norm=norm,
-                    weight_style=weight_style, batch_norm=batch_norm, edge_att_act=edge_att_act,
-                    edge_agg_mode=edge_agg_mode
+                    batch_norm=batch_norm, edge_att_act=edge_att_act,
+                    edge_agg_mode=edge_agg_mode,
+                    use_att_edge=use_att_edge,
+                    use_prop_edge=use_prop_edge
                 )
             )
-            self.norms.append(nn.BatchNorm1d(n_heads * out_hidden))
+            self.norms.append(nn.BatchNorm1d(out_hidden))
 
-        self.pred_linear = nn.Linear(n_heads * n_hidden, n_classes)
+        self.pred_linear = nn.Linear(n_hidden, n_classes)
 
         self.input_drop = nn.Dropout(input_drop)
         self.dropout = nn.Dropout(dropout)
         self.activation = activation
+        print("The new parameter are %s,%s,%s" % (batch_norm, edge_att_act, edge_agg_mode))
+        print("Init %s" % str(self.__class__))
 
+    def forward(self, g):
+        if not isinstance(g, list):
+            subgraphs = [g] * self.n_layers
+        else:
+            subgraphs = g
+
+        h = subgraphs[0].srcdata["feat"]
+
+        if self.one_hot_encoder is not None:
+            x = subgraphs[0].srcdata["x"]
+            h = torch.cat([x, h], dim=1)
+
+        h = self.node_encoder(h)
+        h = F.relu(h, inplace=True)
+        h = self.input_drop(h)
+
+        h_last = None
+
+        for i in range(self.n_layers):
+
+            if self.edge_encoder is not None:
+                efeat = subgraphs[i].edata["feat"]
+                efeat_emb = self.edge_encoder[i](efeat)
+                efeat_emb = F.relu(efeat_emb, inplace=True)
+            else:
+                efeat_emb = None
+
+            h = self.convs[i](subgraphs[i], h, efeat_emb).flatten(1, -1)
+
+            if h_last is not None:
+                h += h_last[: h.shape[0], :]
+
+            h_last = h
+            h = self.norms[i](h)
+            h = self.activation(h, inplace=True)
+            h = self.dropout(h)
+
+        h = self.pred_linear(h)
+        return h

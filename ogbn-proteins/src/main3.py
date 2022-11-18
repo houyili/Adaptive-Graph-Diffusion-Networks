@@ -399,6 +399,9 @@ def main():
     argparser.add_argument("--plot", action="store_true", help="plot learning curves")
     argparser.add_argument("--save-pred", action="store_true", help="save final predictions")
     argparser.add_argument("--log-file-name", type=str, default="")
+    argparser.add_argument("--first-hidden", type=int, default=150, help="first layer size")
+    argparser.add_argument("--use-att-edge", action="store_true")
+    argparser.add_argument("--use-prop-edge", action="store_true")
     args = argparser.parse_args()
     print(args)
 
