@@ -120,15 +120,16 @@ class GIPAConv2(nn.Module):
             nn.init.zeros_(self.agg_fc_e.bias)
 
     def agg_function(self, h, idx):
+        size = self._out_feats if idx == 0 else self._edge_prop_size
         if self._batch_norm:
-            h = h.view(-1, self._n_heads, self._out_feats//self._n_heads)
+            h = h.view(-1, self._n_heads, size//self._n_heads)
             mean = h.mean(dim=-1).view(h.shape[0], self._n_heads, 1)
             var = h.var(dim=-1, unbiased=False).view(h.shape[0], self._n_heads, 1) + 1e-9
             h = (h - mean) * self.scale[idx] * torch.rsqrt(var) + self.offset[idx]
         if idx == 0:
-            return self.agg_fc(h.view(-1, self._out_feats))
+            return self.agg_fc(h.view(-1, size))
         else:
-            return self.agg_fc_e(h.view(-1, self._edge_prop_size))
+            return self.agg_fc_e(h.view(-1, size))
 
     def forward(self, graph, feat_src, feat_edge=None):
         with graph.local_scope():
