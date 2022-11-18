@@ -8,6 +8,7 @@ python -u ../main3.py \
     --lr 0.01 \
     --advanced-optimizer \
     --n-epochs 1500 \
+    --n-heads 20 \
     --n-layers 6 \
     --weight-style sum \
     --dropout 0.4 \

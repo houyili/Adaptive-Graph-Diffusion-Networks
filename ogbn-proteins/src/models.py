@@ -368,7 +368,6 @@ class AGDNConv(nn.Module):
         self._allow_zero_in_degree = set_value
     
     def feat_trans(self, h, idx):
-        
         if self._batch_norm:
             mean = h.mean(dim=-1).view(h.shape[0], self._n_heads, 1)
             var = h.var(dim=-1, unbiased=False).view(h.shape[0], self._n_heads, 1) + 1e-9
