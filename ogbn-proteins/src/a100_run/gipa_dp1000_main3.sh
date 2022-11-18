@@ -10,13 +10,9 @@ python -u ../main3.py \
     --n-epochs 1500 \
     --n-heads 20 \
     --n-layers 6 \
-    --weight-style sum \
     --dropout 0.4 \
-    --n-hidden 500 \
+    --n-hidden 480 \
     --input-drop 0.1 \
-    --attn-drop 0. \
-    --hop-attn-drop 0. \
-    --edge-drop 0.1 \
     --norm none \
     --K 1 --edge-agg-mode "none_softmax" --edge-att-act="softplus"\
     --gpu 1 --root "/data/ogb/datasets/" --log-file-name="gipa_dp1000_main3"
