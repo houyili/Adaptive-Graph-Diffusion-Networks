@@ -116,7 +116,6 @@ class GIPAConv(nn.Module):
             attn_src = self.attn_src_fc(feat_src)
             graph.srcdata.update({"attn_src": attn_src})
 
-
             # dst node attention
             if self.attn_dst_fc is not None:
                 attn_dst = self.attn_dst_fc(feat_dst)
@@ -124,26 +123,36 @@ class GIPAConv(nn.Module):
                 graph.apply_edges(fn.u_add_v("attn_src", "attn_dst", "attn_node"))
             else:
                 graph.apply_edges(fn.copy_u("attn_src", "attn_node"))
-            # edge attention
+
             e = graph.edata["attn_node"]
-            if feat_edge is not None and self.attn_edge_fc is not None:
+            if self.attn_edge_fc is not None:
                 attn_edge = self.attn_edge_fc(feat_edge)
                 graph.edata.update({"attn_edge": attn_edge})
                 e += graph.edata["attn_edge"]
+
             e = self.edge_att_actv(e)
 
-            if self._edge_agg_mode == "both_softmax":
-                graph.edata["a"] = torch.sqrt(edge_softmax(graph, e, norm_by='dst').clamp(min=1e-9) *
-                                              edge_softmax(graph, e, norm_by='src').clamp(min=1e-9))
-            elif self._edge_agg_mode == "single_softmax":
-                graph.edata["a"] = edge_softmax(graph, e, norm_by='dst')
+            if self.training and self.edge_drop > 0:
+                perm = torch.randperm(graph.number_of_edges(), device=e.device)
+                bound = int(graph.number_of_edges() * self.edge_drop)
+                eids = perm[bound:]
             else:
-                graph.edata["a"] = e
+                eids = torch.arange(graph.number_of_edges(), device=e.device)
+            graph.edata["a"] = torch.zeros_like(e)
+
+            if self._edge_agg_mode == "both_softmax":
+                graph.edata["a"][eids] = self.attn_drop(torch.sqrt(
+                    edge_softmax(graph, e[eids], eids=eids, norm_by='dst').clamp(min=1e-9)
+                    * edge_softmax(graph, e[eids], eids=eids, norm_by='src').clamp(min=1e-9)))
+            elif self._edge_agg_mode == "single_softmax":
+                graph.edata["a"][eids] = self.attn_drop((edge_softmax(graph, e[eids], eids=eids, norm_by='dst')))
+            else:
+                graph.edata["a"][eids] = self.attn_drop(e[eids])
 
             if self._norm == "adj":
-                graph.edata["a"] = graph.edata["a"] * graph.edata["gcn_norm_adjust"].view(-1, 1)
+                graph.edata["a"][eids] = graph.edata["a"][eids] * graph.edata["gcn_norm_adjust"][eids].view(-1, 1)
             if self._norm == "avg":
-                graph.edata["a"] = (graph.edata["a"] * graph.edata["gcn_norm"].view(-1, 1)) / 2
+                graph.edata["a"][eids] = (graph.edata["a"][eids] + graph.edata["gcn_norm"][eids].view(-1, 1)) / 2
 
             if self.prop_edge_fc is not None and feat_edge is not None:
                 graph.edata["m"] = graph.edata["a"] * graph.edata["prop_edge"]
