@@ -22,6 +22,6 @@ python -u ../main2.py \
     --edge-att-act="softplus" \
     --norm adv \
     --edge-emb-size 16 \
-    --gpu 1 \
+    --gpu 0 \
     --root "/data/ogb/datasets/" \
     --log-file-name="gipa_sm_softplus_k1_head20_adv"
