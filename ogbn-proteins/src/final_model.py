@@ -151,7 +151,7 @@ class GIPAConv(nn.Module):
                 graph.edata["_m"] = graph.edata["_a"] * graph.edata["_prop_edge"]
                 graph.update_all(fn.sum("_m", "_feat_src_fc"))
             else:
-                graph.update_all(fn.u_mul_e("_feat_src_fc", "_a", "_m"), fn.sum("_m", "_feat_src_fc"))
+                graph.apply_nodes(fn.sum("_m", "_feat_src_fc"))
             msg_sum = graph.dstdata["_feat_src_fc"]
             # print(msg_sum.size())
             # aggregation function
