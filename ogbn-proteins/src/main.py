@@ -371,6 +371,7 @@ def main():
     argparser.add_argument("--plot", action="store_true", help="plot learning curves")
     argparser.add_argument("--save-pred", action="store_true", help="save final predictions")
     argparser.add_argument("--log-file-name", type=str, default="")
+    argparser.add_argument("--edge-emb-size", type=int, default=16)
     args = argparser.parse_args()
     print(args)
 

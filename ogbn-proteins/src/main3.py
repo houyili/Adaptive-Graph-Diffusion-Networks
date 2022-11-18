@@ -402,6 +402,7 @@ def main():
     argparser.add_argument("--first-hidden", type=int, default=150, help="first layer size")
     argparser.add_argument("--disable-att-edge", action="store_true")
     argparser.add_argument("--use-prop-edge", action="store_true")
+    argparser.add_argument("--edge-emb-size", type=int, default=16)
     args = argparser.parse_args()
     print(args)
 
