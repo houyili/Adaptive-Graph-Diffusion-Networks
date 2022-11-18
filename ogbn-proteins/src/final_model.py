@@ -59,8 +59,8 @@ class GIPAConv(nn.Module):
 
         if batch_norm:
             self.offset, self.scale = nn.ParameterList(), nn.ParameterList()
-            self.offset.append(nn.Parameter(torch.zeros(size=(1, n_heads, out_feats/n_heads))))
-            self.scale.append(nn.Parameter(torch.ones(size=(1, n_heads, out_feats/n_heads))))
+            self.offset.append(nn.Parameter(torch.zeros(size=(1, n_heads, out_feats//n_heads))))
+            self.scale.append(nn.Parameter(torch.ones(size=(1, n_heads, out_feats//n_heads))))
 
         self.edge_drop = edge_drop
         self.leaky_relu = nn.LeakyReLU(negative_slope, inplace=True)
@@ -93,7 +93,7 @@ class GIPAConv(nn.Module):
 
     def agg_function(self, h, idx):
         if self._batch_norm:
-            h = h.view(-1, self._n_heads, self._out_feats/self._n_heads)
+            h = h.view(-1, self._n_heads, self._out_feats//self._n_heads)
             mean = h.mean(dim=-1).view(h.shape[0], self._n_heads, 1)
             var = h.var(dim=-1, unbiased=False).view(h.shape[0], self._n_heads, 1) + 1e-9
             h = (h - mean) * self.scale[idx] * torch.rsqrt(var) + self.offset[idx]
