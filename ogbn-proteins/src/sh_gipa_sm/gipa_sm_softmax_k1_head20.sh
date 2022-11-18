@@ -18,10 +18,10 @@ python -u ../main2.py \
     --hop-attn-drop 0. \
     --edge-drop 0.1 \
     --K 1 \
-    --edge-agg-mode "none_softmax" \
-    --edge-att-act="softplus" \
+    --edge-agg-mode "both_softmax" \
+    --edge-att-act "none" \
     --norm none \
-    --edge-emb-size 0\
-    --gpu 0 \
+    --edge-emb-size 16\
+    --gpu 2 \
     --root "/data/ogb/datasets/" \
-    --log-file-name="gipa_sm_softplus_k1_head20_noe"
+    --log-file-name="gipa_sm_softmax_k1_head20"

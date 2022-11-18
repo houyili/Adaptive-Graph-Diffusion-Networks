@@ -1,13 +1,11 @@
 import random
-from time import sleep
-
+import torch
 import dgl
 
 import numpy as np
-import torch
 import math
 import torch.nn.functional as F
-
+import torch.nn as nn
 
 def seed(seed=0):
     random.seed(seed)
@@ -54,3 +52,16 @@ def get_cpu_list(start_from:int, cpu_num:int):
     list_1 = [i + base for i in range(cpu_num)]
     list_2 = [i + base + cpu_num for i in range(cpu_num_2)]
     return list_1,list_2
+
+def get_act_by_str(name:str, negative_slope:float=0):
+    if name == "leaky_relu":
+        res = nn.LeakyReLU(negative_slope, inplace=True)
+    elif name == "tanh":
+        res = nn.Tanh()
+    elif name == "none":
+        res = nn.Identity()
+    elif name == "relu":
+        res = nn.ReLU()
+    else:
+        res = nn.Softplus()
+    return res

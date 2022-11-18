@@ -1,5 +1,4 @@
-from dgl.batch import batch
-import dgl.function as fn
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -7,6 +6,8 @@ from dgl import function as fn
 from dgl.ops import edge_softmax
 from dgl.utils import expand_as_pair
 from torch.nn.modules.dropout import Dropout
+
+from utils import get_act_by_str
 
 
 class GATConv(nn.Module):
@@ -318,8 +319,7 @@ class AGDNConv(nn.Module):
         self.hop_attn_drop = hop_attn_drop
         self.edge_drop = edge_drop
         self.leaky_relu = nn.LeakyReLU(negative_slope, inplace=True)
-        self.edge_att_actv = nn.LeakyReLU(negative_slope, inplace=True) if edge_att_act == "leaky_relu" else nn.Softplus()
-        self.edge_att_actv = nn.Tanh() if edge_att_act == "tanh" else self.edge_att_actv
+        self.edge_att_actv = get_act_by_str(edge_att_act, negative_slope)
         self.activation = activation
         self.position_emb = nn.Parameter(torch.Tensor(K+1, n_heads, out_feats))
         if weight_style == "HA":
