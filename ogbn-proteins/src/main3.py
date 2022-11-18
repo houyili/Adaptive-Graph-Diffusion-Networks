@@ -403,6 +403,7 @@ def main():
     argparser.add_argument("--disable-att-edge", action="store_true")
     argparser.add_argument("--use-prop-edge", action="store_true")
     argparser.add_argument("--edge-emb-size", type=int, default=16)
+    argparser.add_argument("--n-hidden-per-head", type=int, default=30)
     args = argparser.parse_args()
     print(args)
 
