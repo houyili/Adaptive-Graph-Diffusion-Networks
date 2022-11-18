@@ -93,8 +93,8 @@ class GIPAConv(nn.Module):
 
     def agg_function(self, h, idx):
         if self._batch_norm:
-            mean = h.mean(dim=-1)
-            var = h.var(dim=-1, unbiased=False) + 1e-9
+            mean = h.mean(dim=-1).view(h.shape[0], self._out_feats)
+            var = h.var(dim=-1, unbiased=False).view(h.shape[0], self._out_feats) + 1e-9
             h = (h - mean) * self.scale[idx] * torch.rsqrt(var) + self.offset[idx]
         return self.agg_fc(h)
 
