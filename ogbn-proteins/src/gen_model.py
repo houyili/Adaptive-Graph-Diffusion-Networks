@@ -171,7 +171,7 @@ def count_parameters(args, n_node_feats, n_edge_feats, n_classes):
     model = gen_model(args, n_node_feats, n_edge_feats, n_classes)
     for p in model.parameters():
         if p.requires_grad:
-            print(p.__)
+            print(p.names)
             print(p.size())
     n_parameters = sum([np.prod(p.size()) for p in model.parameters() if p.requires_grad])
     del model
