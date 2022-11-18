@@ -19,4 +19,4 @@ python -u ../main3.py \
     --edge-drop 0.1 \
     --norm none \
     --K 1 --edge-agg-mode "none_softmax" --edge-att-act="softplus" --norm="avg"\
-    --gpu 0 --root "/share/lihouyi/ogb/datasets/" --log-file-name="gipa_sm_softplus_k1_head20"
+    --gpu 0 --root "/data/ogb/datasets/" --log-file-name="gipa_sm_head20_main3_e1"
