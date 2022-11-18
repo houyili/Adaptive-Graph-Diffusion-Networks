@@ -15,4 +15,5 @@ python -u ../main3.py \
     --input-drop 0.1 \
     --norm none \
     --K 1 --edge-agg-mode "none_softmax" --edge-att-act="softplus" \
-    --gpu 4 --root "/data/ogb/datasets/" --log-file-name="gipa_dp300_prop_edge"
+    --gpu 3 --root "/data/ogb/datasets/" --log-file-name="gipa_dp400_prop_edge" \
+    --use-prop-edge

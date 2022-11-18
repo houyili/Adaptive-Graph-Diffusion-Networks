@@ -11,9 +11,8 @@ python -u ../main3.py \
     --n-heads 20 \
     --n-layers 6 \
     --dropout 0.4 \
-    --n-hidden 400 \
+    --n-hidden 300 \
     --input-drop 0.1 \
     --norm none \
     --K 1 --edge-agg-mode "none_softmax" --edge-att-act="softplus" \
-    --gpu 3 --root "/data/ogb/datasets/" --log-file-name="gipa_dp400_prop_edge" \
-    --use-prop-edge
+    --gpu 4 --root "/data/ogb/datasets/" --log-file-name="gipa_dp300"
