@@ -29,7 +29,8 @@ n_node_feats, n_edge_feats, n_classes = 0, 8, 112
 
 def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx, criterion, optimizer, _evaluator):
     model.train()
-
+    train_score = -1
+    train_pred = torch.zeros(graph.ndata["labels"].shape).to(device)
     loss_sum, total = 0, 0
     if args.sample_type == "neighbor_sample":
         for input_nodes, output_nodes, subgraphs in dataloader:
@@ -81,6 +82,7 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
             inner_train_mask = np.isin(batch_nodes[train_pred_idx.cpu()], _train_idx.cpu())
             train_pred_idx = train_pred_idx[inner_train_mask]
             pred = model(subgraph)
+            train_pred[batch_nodes] += pred
             # if args.n_label_iters > 0:
             #     unlabel_idx = np.setdiff1d(new_train_idx, train_labels_idx)
             #     for _ in range(args.n_label_iters):
@@ -97,6 +99,7 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
             count = len(train_pred_idx)
             loss_sum += loss.item() * count
             total += count
+        train_score = _evaluator(train_pred[_train_idx], _labels[_train_idx])
 
     if args.sample_type == "khop_sample":
 
@@ -145,7 +148,7 @@ def train(args, graph, model, dataloader, _labels, _train_idx, val_idx, test_idx
             loss_sum += loss.item() * count
             total += count
 
-    return loss_sum / total
+    return loss_sum / total, train_score
 
 
 @torch.no_grad()
@@ -280,11 +283,14 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
     for epoch in range(1, args.n_epochs + 1):
         tic = time.time()
 
-        loss = train(args, graph, model, train_dataloader, labels, train_idx, val_idx, test_idx, criterion,
+        loss, t_score = train(args, graph, model, train_dataloader, labels, train_idx, val_idx, test_idx, criterion,
                          optimizer, evaluator_wrapper)
 
         toc = time.time()
         total_time += toc - tic
+        train_msg = f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}, " \
+                    f"this epoch time: {toc - tic:.2f}s Train loss/score: {loss:.4f}/{t_score:.4f}\n"
+        print_msg_and_write(train_msg, log_f)
 
         if epoch < 500:
             eval_interval, log_interval = args.eval_every * 20, args.log_every * 20
