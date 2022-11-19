@@ -16,8 +16,8 @@ python -u ../main3.py \
     --norm none \
     --K 1 \
     --edge-agg-mode "both_softmax" \
-    --edge-att-act="softplus"\
-    --gpu 2 \
+    --edge-att-act "none"\
+    --gpu 3 \
     --root "/data/ogb/datasets/"\
     --n-hidden-per-head 40 \
-    --log-file-name="gipa_para_main3"
+    --log-file-name="gipa_para_softmax"
