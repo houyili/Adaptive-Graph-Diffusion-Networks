@@ -11,13 +11,13 @@ python -u ../main3.py \
     --n-heads 20 \
     --n-layers 5 \
     --dropout 0.4 \
-    --n-hidden 120 \
+    --n-hidden 100 \
     --input-drop 0.1 \
     --norm none \
     --K 1 \
     --edge-agg-mode "both_softmax" \
     --edge-att-act "none"\
-    --gpu 4 \
+    --gpu 5 \
     --root "/data/ogb/datasets/"\
-    --n-hidden-per-head 40 \
+    --n-hidden-per-head 45 \
     --log-file-name="gipa_para_softmax"
