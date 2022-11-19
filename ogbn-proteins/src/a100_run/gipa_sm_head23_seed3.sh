@@ -24,5 +24,5 @@ python -u ../main2.py \
     --edge-emb-size 16\
     --gpu 6 \
     --root "/data/ogb/datasets/" \
-    --seed 3 --n_runs 1 \
+    --seed 3 --n-runs 1 \
     --log-file-name="gipa_sm_head23_seed3"
