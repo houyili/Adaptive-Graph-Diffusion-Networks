@@ -9,7 +9,7 @@ python -u ../main3.py \
     --advanced-optimizer \
     --n-epochs 1500 \
     --n-heads 20 \
-    --n-layers 5 \
+    --n-layers 6 \
     --dropout 0.4 \
     --n-hidden 200 \
     --input-drop 0.1 \

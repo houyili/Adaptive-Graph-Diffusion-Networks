@@ -217,6 +217,7 @@ def evaluate(args, graph, model, dataloader, labels, train_idx, val_idx, test_id
 
 
 def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running, log_f):
+    torch.cuda.empty_cache()
     evaluator_wrapper = lambda pred, labels: evaluator.eval({"y_pred": pred, "y_true": labels})["rocauc"]
 
     train_dataloader, eval_dataloader = None, None
