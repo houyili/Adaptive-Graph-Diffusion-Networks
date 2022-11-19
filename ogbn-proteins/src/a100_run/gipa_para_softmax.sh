@@ -11,7 +11,7 @@ python -u ../main3.py \
     --n-heads 20 \
     --n-layers 5 \
     --dropout 0.4 \
-    --n-hidden 80 \
+    --n-hidden 60 \
     --input-drop 0.1 \
     --norm none \
     --K 1 \
@@ -19,5 +19,5 @@ python -u ../main3.py \
     --edge-att-act "none"\
     --gpu 5 \
     --root "/data/ogb/datasets/"\
-    --n-hidden-per-head 45 \
+    --n-hidden-per-head 47 \
     --log-file-name="gipa_para_softmax"
