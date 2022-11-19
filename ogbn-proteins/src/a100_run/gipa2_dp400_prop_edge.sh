@@ -9,11 +9,11 @@ python -u ../main3.py \
     --advanced-optimizer \
     --n-epochs 1500 \
     --n-heads 20 \
-    --n-layers 6 \
+    --n-layers 4 \
     --dropout 0.4 \
-    --n-hidden 400 \
+    --n-hidden 500 \
     --input-drop 0.1 \
     --norm none \
     --edge-agg-mode "none_softmax" --edge-att-act="softplus" \
-    --gpu 5 --root "/data/ogb/datasets/" --log-file-name="gipa2_dp400_prop_edge" \
+    --gpu 3 --root "/data/ogb/datasets/" --log-file-name="gipa2_dp400_prop_edge" \
     --use-prop-edge --edge-prop-size 60
