@@ -17,7 +17,7 @@ python -u ../main3.py \
     --K 1 \
     --edge-agg-mode "both_softmax" \
     --edge-att-act "none"\
-    --gpu 3 \
+    --gpu 4 \
     --root "/data/ogb/datasets/"\
     --n-hidden-per-head 40 \
     --log-file-name="gipa_para_softmax"
