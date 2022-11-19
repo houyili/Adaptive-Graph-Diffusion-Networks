@@ -355,7 +355,7 @@ def main():
     argparser.add_argument("--n-heads", type=int, default=3, help="number of heads")
     argparser.add_argument("--norm", type=str, default="none", choices=["none", "adj", "avg"])
     argparser.add_argument("--disable-fea-trans-norm", action="store_true", help="disable batch norm in fea trans part")
-    argparser.add_argument("--edge-att-act", type=str, default="leaky_relu", choices=["leaky_relu", "tanh", "softplus", "none"])
+    argparser.add_argument("--edge-att-act", type=str, default="leaky_relu", choices=["leaky_relu", "tanh", "softplus", "none", "relu"])
     argparser.add_argument("--edge-agg-mode", type=str, default="both_softmax", choices=["both_softmax", "single_softmax", "none_softmax"])
     argparser.add_argument("--weight-style", type=str, default="HA", choices=["sum", "mean", "HC", "HA"])
     argparser.add_argument("--K", type=int, default=3)
