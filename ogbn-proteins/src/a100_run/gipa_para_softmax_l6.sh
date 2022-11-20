@@ -16,7 +16,7 @@ python -u ../main3.py \
     --norm none \
     --K 1 \
     --edge-agg-mode "both_softmax" \
-    --edge-att-act "None"\
+    --edge-att-act "none"\
     --gpu 7 \
     --root "/data/ogb/datasets/"\
     --seed 1 \
