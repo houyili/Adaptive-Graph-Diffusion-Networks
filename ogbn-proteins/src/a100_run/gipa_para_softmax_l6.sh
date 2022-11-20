@@ -19,7 +19,7 @@ python -u ../main3.py \
     --edge-att-act "none"\
     --gpu 7 \
     --root "/data/ogb/datasets/"\
-    --seed 1 \
-    --n-runs 9 \
+    --seed 0 \
+    --n-runs 10 \
     --n-hidden-per-head 40 \
     --log-file-name="gipa_para_softmax_l6"

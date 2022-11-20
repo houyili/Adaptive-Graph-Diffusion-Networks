@@ -19,6 +19,6 @@ python -u ../main3.py \
     --edge-att-act "softplus"\
     --gpu 1 \
     --root "/data/ogb/datasets/" \
-    --seed 1 \
-    --n-runs 9 \
+    --seed 2 \
+    --n-runs 8 \
     --log-file-name="gipa_dp1000_main3"
