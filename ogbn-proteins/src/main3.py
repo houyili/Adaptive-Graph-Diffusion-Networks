@@ -306,10 +306,8 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
             eval_interval, log_interval = args.eval_every * 20, args.log_every * 20
         elif epoch < 1000:
             eval_interval, log_interval = args.eval_every * 10, args.log_every * 10
-        elif epoch > 1100:
-            eval_interval, log_interval =  args.eval_every * 5, args.log_every * 5
         else:
-            eval_interval, log_interval = args.eval_every * 2, args.log_every * 2
+            eval_interval, log_interval = args.eval_every , args.log_every
         if epoch == args.n_epochs or epoch % eval_interval == 0 or epoch % log_interval == 0:
             tic = time.time()
             train_score, val_score, test_score, train_loss, val_loss, test_loss, pred = evaluate(
