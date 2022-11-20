@@ -24,7 +24,7 @@ class GIPAConv(nn.Module):
             batch_norm=True,
             weight_style="HA",
             edge_att_act="leaky_relu",
-            edge_agg_mode="both_softmax",
+            edge_agg_mode="none_softmax",
             use_att_edge=True,
             use_prop_edge=False
     ):
@@ -343,8 +343,9 @@ class GIPAPara(nn.Module):
                     use_attn_dst=use_attn_dst,
                     allow_zero_in_degree=allow_zero_in_degree,
                     norm=norm,
-                    batch_norm=batch_norm, edge_att_act=edge_att_act,
-                    edge_agg_mode=edge_agg_mode,
+                    batch_norm=batch_norm,
+                    edge_att_act="softplus",
+                    edge_agg_mode="none_softmax",
                     use_att_edge=use_att_edge,
                     use_prop_edge=use_prop_edge
                 )
@@ -363,7 +364,9 @@ class GIPAPara(nn.Module):
                     residual=True,
                     allow_zero_in_degree=allow_zero_in_degree,
                     norm=norm,
-                    weight_style="sum", batch_norm=batch_norm, edge_att_act=edge_att_act,
+                    weight_style="sum",
+                    batch_norm=batch_norm,
+                    edge_att_act=edge_att_act,
                     edge_agg_mode=edge_agg_mode
                 )
             )
