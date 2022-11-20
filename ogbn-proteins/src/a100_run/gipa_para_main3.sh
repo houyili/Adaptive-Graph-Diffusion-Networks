@@ -19,5 +19,7 @@ python -u ../main3.py \
     --edge-att-act="softplus"\
     --gpu 2 \
     --root "/data/ogb/datasets/"\
+    --seed 1 \
+    --n-runs 9 \
     --n-hidden-per-head 40 \
     --log-file-name="gipa_para_main3"

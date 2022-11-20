@@ -14,5 +14,11 @@ python -u ../main3.py \
     --n-hidden 460 \
     --input-drop 0.1 \
     --norm none \
-    --K 1 --edge-agg-mode "none_softmax" --edge-att-act="softplus"\
-    --gpu 1 --root "/data/ogb/datasets/" --log-file-name="gipa_dp1000_main3"
+    --K 1 \
+    --edge-agg-mode "none_softmax" \
+    --edge-att-act="softplus"\
+    --gpu 1 \
+    --root "/data/ogb/datasets/" \
+    --seed 1 \
+    --n-runs 9 \
+    --log-file-name="gipa_dp1000_main3"
