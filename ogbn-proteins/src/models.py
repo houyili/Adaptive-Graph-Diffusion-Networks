@@ -437,7 +437,7 @@ class AGDNConv(nn.Module):
             if self._norm == "adj":
                 graph.edata["a"][eids] = graph.edata["a"][eids] * graph.edata["gcn_norm_adjust"][eids].view(-1, 1, 1) 
             if self._norm == "avg":
-                graph.edata["a"][eids] = (graph.edata["a"][eids] * graph.edata["gcn_norm"][eids].view(-1, 1, 1)) / 2
+                graph.edata["a"][eids] = (graph.edata["a"][eids] + graph.edata["gcn_norm"][eids].view(-1, 1, 1)) / 2
 
             # message passing
             if self._weight_style == "HA":
