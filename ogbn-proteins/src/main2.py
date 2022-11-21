@@ -292,14 +292,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
                     f"this epoch time: {toc - tic:.2f}s Train loss/score: {loss:.4f}/{t_score:.4f}\n"
         print_msg_and_write(train_msg, log_f)
 
-        if epoch < 500:
-            eval_interval, log_interval = args.eval_every * 20, args.log_every * 20
-        elif epoch < 1000:
-            eval_interval, log_interval = args.eval_every * 10, args.log_every * 10
-        else:
-            eval_interval, log_interval = args.eval_every , args.log_every
-
-        if epoch == args.n_epochs or epoch % eval_interval== 0 or epoch % log_interval == 0:
+        if epoch == args.n_epochs or epoch % args.eval_every== 0 or epoch % args.log_every == 0:
             train_score, val_score, test_score, train_loss, val_loss, test_loss, pred = evaluate(
                 args, graph, model, eval_dataloader, labels, train_idx, val_idx, test_idx, criterion, evaluator_wrapper)
 
@@ -309,7 +302,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
                 final_pred = pred
                 best_step = epoch
 
-            if epoch % log_interval == 0:
+            if epoch % args.log_every == 0:
                 out_msg = f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}, Average epoch time: {total_time / epoch:.2f}s\n" \
                         f"Loss: {loss:.4f} Train/Val/Test loss: {train_loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n" \
                         f"Train/Val/Test: {train_score:.4f}/{val_score:.4f}/{test_score:.4f}\n"\
