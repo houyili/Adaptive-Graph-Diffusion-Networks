@@ -24,4 +24,4 @@ python -u ../main2.py \
     --edge-emb-size 16\
     --gpu 4 \
     --root "/data/ogb/datasets/" \
-    --log-file-name="gipa_sm_single_softmax_head20"
+    --log-file-name="gipa_sm_single_softmax_h20_l6"
