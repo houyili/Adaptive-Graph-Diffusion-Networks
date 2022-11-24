@@ -22,6 +22,6 @@ python -u ../main2.py \
     --edge-att-act "none" \
     --norm none \
     --edge-emb-size 16\
-    --gpu 5 \
+    --gpu 1 \
     --root "/data/ogb/datasets/" \
     --log-file-name="gipa_sm_softmax_h20_l5"

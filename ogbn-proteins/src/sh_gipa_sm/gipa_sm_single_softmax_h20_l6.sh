@@ -9,7 +9,7 @@ python -u ../main2.py \
     --advanced-optimizer \
     --n-epochs 1500 \
     --n-heads 20 \
-    --n-layers 5 \
+    --n-layers 6 \
     --weight-style sum \
     --dropout 0.4 \
     --n-hidden 50 \
@@ -22,6 +22,6 @@ python -u ../main2.py \
     --edge-att-act "none" \
     --norm none \
     --edge-emb-size 16\
-    --gpu 4 \
+    --gpu 0 \
     --root "/data/ogb/datasets/" \
     --log-file-name="gipa_sm_single_softmax_h20_l6"
