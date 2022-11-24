@@ -11,7 +11,7 @@ python -u ../main2.py \
     --n-heads 20 \
     --n-layers 6 \
     --dropout 0.4 \
-    --n-hidden 100 \
+    --n-hidden 80 \
     --input-drop 0.1 \
     --norm none \
     --K 1 \
