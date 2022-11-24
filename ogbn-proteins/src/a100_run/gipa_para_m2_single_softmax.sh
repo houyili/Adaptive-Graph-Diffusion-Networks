@@ -11,16 +11,16 @@ python -u ../main2.py \
     --n-heads 20 \
     --n-layers 6 \
     --dropout 0.4 \
-    --n-hidden 200 \
+    --n-hidden 100 \
     --input-drop 0.1 \
     --attn-drop 0. \
     --hop-attn-drop 0. \
     --edge-drop 0. \
-    --edge-agg-mode "none_softmax" \
-    --edge-att-act "softplus" \
+    --edge-agg-mode "single_softmax" \
+    --edge-att-act "none" \
     --norm none \
-    --gpu 3 \
+    --gpu 1 \
     --root "/data/ogb/datasets/"\
     --n-runs 10 \
-    --n-hidden-per-head 40 \
-    --log-file-name="gipa_para_m2_h200"
+    --n-hidden-per-head 45 \
+    --log-file-name="gipa_para_m2_single_softmax"
