@@ -11,7 +11,7 @@ python -u ../main2.py \
     --n-heads 20 \
     --n-layers 6 \
     --dropout 0.4 \
-    --n-hidden 60 \
+    --n-hidden 100 \
     --input-drop 0.1 \
     --norm none \
     --K 1 \
@@ -20,5 +20,5 @@ python -u ../main2.py \
     --gpu 0 \
     --root "/data/ogb/datasets/"\
     --n-runs 10 \
-    --n-hidden-per-head 47 \
+    --n-hidden-per-head 45 \
     --log-file-name="gipa_para_main2"
