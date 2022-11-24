@@ -17,7 +17,7 @@ from dgl.dataloading import NodeDataLoader
 from torch import nn
 
 from data import load_data, preprocess
-from gen_model import count_parameters, gen_model, MODEL_LIST
+from gen_model import count_parameters, gen_model, MODEL_LIST, count_model_parameters
 from sampler import BatchSampler, DataLoaderWrapper, RandomPartitionSampler, ShaDowKHopSampler, random_partition_v2
 from utils import add_labels, seed, loge_BCE, print_msg_and_write
 
@@ -281,6 +281,10 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
 
 
     for epoch in range(1, args.n_epochs + 1):
+        if epoch == 1:
+            title_msg = f"Number of node feature: {n_node_feats}\n" + f"Number of edge feature: {n_edge_feats}\n" + \
+                        f"Number of params: {count_model_parameters(model)}\n"
+            print_msg_and_write(title_msg, log_f)
         tic = time.time()
 
         loss, t_score = train(args, graph, model, train_dataloader, labels, train_idx, val_idx, test_idx, criterion,
@@ -381,7 +385,12 @@ def main():
     argparser.add_argument("--plot", action="store_true", help="plot learning curves")
     argparser.add_argument("--save-pred", action="store_true", help="save final predictions")
     argparser.add_argument("--log-file-name", type=str, default="")
+    argparser.add_argument("--first-hidden", type=int, default=150, help="first layer size")
+    argparser.add_argument("--disable-att-edge", action="store_true")
+    argparser.add_argument("--use-prop-edge", action="store_true")
     argparser.add_argument("--edge-emb-size", type=int, default=16)
+    argparser.add_argument("--n-hidden-per-head", type=int, default=30)
+    argparser.add_argument("--edge-prop-size", type=int, default=0)
     args = argparser.parse_args()
     print(args)
 
@@ -409,15 +418,11 @@ def main():
 
     # run
     val_scores, test_scores = [], []
-    title_msg = f"Number of node feature: {n_node_feats}\n" + f"Number of edge feature: {n_edge_feats}\n" + \
-                f"Number of params: {count_parameters(args, n_node_feats, n_edge_feats, n_classes)}\n"
-    print(title_msg)
     version = str(int(time.time())) if args.log_file_name=="" else "%s_%d" %(args.log_file_name, int(time.time()))
     os.makedirs("%s/log" % (args.root), exist_ok=True)
     for i in range(args.n_runs):
         log_f = open("%s/log/%s_part%d.log" % (args.root, version, i) , mode='a')
-        log_f.write(args.__str__() + "\n" + title_msg)
-        log_f.flush()
+        print_msg_and_write(args.__str__() + "\n", log_f)
         print("Running", i)
         seed(args.seed + i)
         val_score, test_score = run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, i + 1, log_f)
