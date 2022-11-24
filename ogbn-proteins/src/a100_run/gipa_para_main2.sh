@@ -3,7 +3,7 @@ python -u ../main2.py \
     --model gipa_para \
     --sample-type random_cluster \
     --train-partition-num 6 \
-    --eval-partition-num 2 \
+    --eval-partition-num 1 \
     --eval-times 1 \
     --lr 0.01 \
     --advanced-optimizer \
@@ -17,9 +17,8 @@ python -u ../main2.py \
     --K 1 \
     --edge-agg-mode "none_softmax" \
     --edge-att-act="softplus"\
-    --gpu 2 \
+    --gpu 0 \
     --root "/data/ogb/datasets/"\
-    --seed 1 \
-    --n-runs 9 \
+    --n-runs 10 \
     --n-hidden-per-head 40 \
-    --log-file-name="gipa_para_main3"
+    --log-file-name="gipa_para_main2"
