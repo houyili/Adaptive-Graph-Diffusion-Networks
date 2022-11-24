@@ -3,7 +3,7 @@ python -u ../main2.py \
     --model gipa_para \
     --sample-type random_cluster \
     --train-partition-num 6 \
-    --eval-partition-num 1 \
+    --eval-partition-num 2 \
     --eval-times 1 \
     --lr 0.01 \
     --advanced-optimizer \
