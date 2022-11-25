@@ -11,7 +11,7 @@ python -u ../main2.py \
     --n-heads 20 \
     --n-layers 2 \
     --dropout 0.4 \
-    --n-hidden 80 \
+    --n-hidden 100 \
     --input-drop 0.1 \
     --attn-drop 0. \
     --hop-attn-drop 0. \
@@ -19,7 +19,7 @@ python -u ../main2.py \
     --edge-agg-mode "single_softmax" \
     --edge-att-act "none" \
     --norm none \
-    --gpu 3 \
+    --gpu 0 \
     --root "/data/ogb/datasets/"\
     --n-runs 10 \
     --n-hidden-per-head 50 \
