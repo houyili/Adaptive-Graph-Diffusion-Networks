@@ -15,7 +15,7 @@ python -u ../main2.py \
     --input-drop 0.1 \
     --attn-drop 0. \
     --hop-attn-drop 0. \
-    --edge-drop 0.1 \
+    --edge-drop 0. \
     --edge-agg-mode "single_softmax" \
     --edge-att-act "none" \
     --norm none \
