@@ -24,4 +24,4 @@ python -u ../main2.py \
     --edge-emb-size 16\
     --gpu 3 \
     --root "/data/ogb/datasets/" \
-    --log-file-name="gipa_sm_nonsm_none"
+    --log-file-name="gipa_sm_speed_test"
