@@ -15,12 +15,13 @@ python -u ../main2.py \
     --input-drop 0.1 \
     --attn-drop 0. \
     --hop-attn-drop 0. \
-    --edge-drop 0.1 \
+    --edge-drop 0. \
     --edge-agg-mode "single_softmax" \
     --edge-att-act "none" \
     --norm none \
     --gpu 1 \
     --root "/data/ogb/datasets/"\
     --n-runs 10 \
-    --n-hidden-per-head 50 \
+    --n-hidden-per-head 45 \
     --log-file-name="gipa_para_m2_single_softmax"
+
