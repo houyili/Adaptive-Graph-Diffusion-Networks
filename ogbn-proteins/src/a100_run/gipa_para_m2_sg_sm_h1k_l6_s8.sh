@@ -21,6 +21,6 @@ python -u ../main2.py \
     --norm none \
     --gpu 3 \
     --root "/data/ogb/datasets/"\
-    --n-runs 1 --seed 8\
+    --n-runs 1 --seed 8 \
     --n-hidden-per-head 50 \
     --log-file-name="gipa_para_m2_sg_sm_h1k_l6"
