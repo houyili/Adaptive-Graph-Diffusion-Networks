@@ -19,9 +19,11 @@ python -u ../main2.py \
     --edge-drop 0.1 \
     --K 1 \
     --edge-agg-mode "none_softmax" \
-    --edge-att-act "none" \
+    --edge-att-act "softplus" \
     --norm none \
     --edge-emb-size 16\
     --gpu 3 \
     --root "/data/ogb/datasets/" \
-    --log-file-name="gipa_sm_speed_test"
+    --log-file-name="gipa_sm_speed_test" \
+    --eval-every 500 \
+    --log-every 500
