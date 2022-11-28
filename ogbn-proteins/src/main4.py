@@ -33,7 +33,8 @@ def train(args, graph, model, _labels, _train_idx, criterion, optimizer, _evalua
         subgraph = subgraph.to(device)
         pred = model(subgraph)
         train_pred[batch_nodes] += pred
-        loss = criterion(pred[batch_nodes], subgraph.ndata["labels"][batch_nodes].float())
+        train_pred_idx = batch_nodes[torch.isin(batch_nodes, _train_idx)]
+        loss = criterion(pred[train_pred_idx], subgraph.ndata["labels"][train_pred_idx].float())
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
