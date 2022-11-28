@@ -30,17 +30,17 @@ def train(args, graph, model, _labels, _train_idx, criterion, optimizer, _evalua
     loss_sum, total = 0, 0
 
     for batch_nodes, subgraph in random_partition_v2(args.train_partition_num, graph, shuffle=True):
+        nodes_id = torch.from_numpy(batch_nodes).to(device)
         subgraph = subgraph.to(device)
         pred = model(subgraph)
-        train_pred[batch_nodes] += pred
-        train_pred_idx = batch_nodes[torch.isin(batch_nodes, _train_idx)]
+        train_pred[nodes_id] += pred
+        train_pred_idx = nodes_id[torch.isin(nodes_id, _train_idx)]
         loss = criterion(pred[train_pred_idx], subgraph.ndata["labels"][train_pred_idx].float())
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        count = len(batch_nodes)
-        loss_sum += loss.item() * count
-        total += count
+        loss_sum += loss.item() * len(batch_nodes)
+        total += len(batch_nodes)
     train_score = _evaluator(train_pred[_train_idx], _labels[_train_idx])
 
     return loss_sum / total, train_score
