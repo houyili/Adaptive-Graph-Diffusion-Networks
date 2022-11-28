@@ -8,8 +8,9 @@ plt.cla()
 
 x = np.arange(0, 6)
 
-y2 = [0.8360, 0.8747, 0.8820, 0.8869, 0.8894, 0.890]
-y3 = [0.9134,0.9382,0.9421,0.9449,0.9483,0.9505]
+
+y2 = [0.8360, 0.8748, 0.8820, 0.8870, 0.8895, 0.8901]
+y3 = [0.9134, 0.9382, 0.9422, 0.9452, 0.9485, 0.9505]
 # y3 = [0.281183973
 # ,0.281797251
 # ,0.282384611
@@ -52,5 +53,5 @@ plt.legend()
 
 plt.grid(True)
 # plt.show()
-plt.savefig('gipa_layer.png', dpi=500, bbox_inches='tight')
+plt.savefig('./gipa_layer.png', dpi=500, bbox_inches='tight')
 # plt.savefig('longtail_exp.eps', format="eps",dpi=500, bbox_inches='tight')
