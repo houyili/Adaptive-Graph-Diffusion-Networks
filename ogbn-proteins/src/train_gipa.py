@@ -27,14 +27,14 @@ def train(args, graph, model, _labels, _train_idx, criterion, optimizer, _evalua
     train_pred = torch.zeros(graph.ndata["labels"].shape).to(device)
     loss_sum, total = 0, 0
 
-    for batch_nodes, subgraph in random_subgraph(args.train_partition_num, graph, shuffle=True):
-        subgraph = subgraph.to(device)
+    for batch_nodes, sub_graph in random_subgraph(args.train_partition_num, graph, shuffle=True):
+        sub_graph = sub_graph.to(device)
         new_train_idx = torch.arange(0, len(batch_nodes), device=device)
         inner_train_mask = np.isin(batch_nodes[new_train_idx.cpu()], _train_idx.cpu())
         train_pred_idx = new_train_idx[inner_train_mask]
-        pred = model(subgraph)
+        pred = model(sub_graph)
         train_pred[batch_nodes] += pred
-        loss = criterion(pred[train_pred_idx], subgraph.ndata["labels"][train_pred_idx].float())
+        loss = criterion(pred[train_pred_idx], sub_graph.ndata["labels"][train_pred_idx].float())
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -143,8 +143,10 @@ def main():
     argparser.add_argument("--n-heads", type=int, default=3, help="number of heads")
     argparser.add_argument("--norm", type=str, default="none", choices=["none", "adj", "avg"])
     argparser.add_argument("--disable-fea-trans-norm", action="store_true", help="disable batch norm in fea trans part")
-    argparser.add_argument("--edge-att-act", type=str, default="leaky_relu", choices=["leaky_relu", "tanh", "softplus", "none", "relu"])
-    argparser.add_argument("--edge-agg-mode", type=str, default="both_softmax", choices=["single_softmax", "none_softmax"])
+    argparser.add_argument("--edge-att-act", type=str, default="leaky_relu",
+                           choices=["leaky_relu", "tanh", "softplus", "none", "relu"])
+    argparser.add_argument("--edge-agg-mode", type=str, default="none_softmax",
+                           choices=["single_softmax", "none_softmax"])
     argparser.add_argument("--lr", type=float, default=0.001, help="learning rate")
     argparser.add_argument("--n-layers", type=int, default=6, help="number of layers")
     argparser.add_argument("--n-hidden", type=int, default=80, help="number of hidden units")
@@ -181,7 +183,7 @@ def main():
     for i in range(args.n_runs):
         log_f = open("%s/log/%s_part%d.log" % (args.root, version, i) , mode='a')
         print_msg_and_write(args.__str__() + "\n", log_f)
-        print_msg_and_write("Running for seeds %d" %(args.seed + i))
+        print_msg_and_write("Running for seeds %d" %(args.seed + i), log_f)
         seed(args.seed + i)
         val_score, test_score = run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, i + 1, log_f)
         val_scores.append(val_score)
