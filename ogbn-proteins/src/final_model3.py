@@ -121,7 +121,7 @@ class GIPAConv(nn.Module):
             graph.edata["a"] = torch.zeros_like(e)
 
             # edge softmax
-            if self._edge_agg_mode == "softmax":
+            if self._edge_agg_mode == "single_softmax":
                 graph.edata["a"][eids] = edge_softmax(graph, e[eids], eids=eids, norm_by='dst')
             else:
                 graph.edata["a"][eids] = e[eids]
