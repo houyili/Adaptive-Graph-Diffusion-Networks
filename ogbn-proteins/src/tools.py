@@ -4,7 +4,7 @@ import numpy as np
 import dgl
 
 from final_model3 import GIPA_SIMPLE
-
+import torch.nn.functional as F
 
 def count_model_parameters(model:torch.nn.Module):
     for name, parameters in model.named_parameters():
