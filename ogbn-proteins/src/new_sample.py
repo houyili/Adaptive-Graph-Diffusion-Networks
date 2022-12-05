@@ -1,8 +1,25 @@
 import torch
+import numpy as np
 import dgl
 from dgl.base import EID,NID
 from dgl.dataloading import NeighborSampler
 
+def random_subgraph(num_clusters, graph, shuffle=True, save_e=[]):
+    if shuffle:
+        cluster_id = np.random.randint(low=0, high=num_clusters, size=graph.num_nodes())
+    else:
+        if not save_e:
+            cluster_id = np.random.randint(low=0, high=num_clusters, size=graph.num_nodes())
+            save_e.append(cluster_id)
+        else:
+            cluster_id = save_e[0]
+    perm = np.arange(0, graph.num_nodes())
+    batch_no = 0
+    while batch_no < num_clusters:
+        batch_nodes = perm[cluster_id == batch_no]
+        batch_no += 1
+        sub_g = graph.subgraph(batch_nodes)
+        yield batch_nodes, sub_g
 
 class EdgeSampleMultiLayerNeighborSampler(NeighborSampler):
     def __init__(self, fanouts, edge_sample_rate:list, edge_dir='in', prob=None, replace=False,
