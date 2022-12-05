@@ -167,7 +167,7 @@ class GIPA_SIMPLE(nn.Module):
             norm="none",
             batch_norm=True,
             edge_att_act="leaky_relu",
-            edge_agg_mode="both_softmax",
+            edge_agg_mode="none_softmax",
             first_hidden = 150
     ):
         super().__init__()
