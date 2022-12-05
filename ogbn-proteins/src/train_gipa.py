@@ -159,6 +159,7 @@ def main():
     argparser.add_argument("--log-file-name", type=str, default="")
     argparser.add_argument("--first-hidden", type=int, default=150, help="first layer size")
     argparser.add_argument("--edge-emb-size", type=int, default=16)
+    argparser.add_argument("--wd", type=float, default=0, help="weight decay")
     args = argparser.parse_args()
     print(args)
 
