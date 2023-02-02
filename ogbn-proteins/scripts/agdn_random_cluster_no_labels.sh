@@ -20,4 +20,4 @@ python -u ../src/main.py \
     --norm none \
     --K 2 \
     --gpu 1 --root "/home/lihouyi/ogb/gipa_plus/datasets/" \
-    --log-file-name "adgn"
+    --log-file-name "adgn_gpu1"
