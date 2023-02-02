@@ -19,5 +19,5 @@ python -u ../src/main.py \
     --edge-drop 0.1 \
     --norm none \
     --K 2 \
-    --gpu 1 --root "/home/lihouyi/ogb/gipa_plus/datasets/" \
+    --gpu 1 --root "/data/ogb/datasets/" \
     --log-file-name "adgn_gpu1"
