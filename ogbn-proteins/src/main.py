@@ -265,7 +265,7 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
         optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.wd)
     
 
-    total_time = 0
+    total_time, eval_time, eval_num = 0, 0, 0
     val_score, best_val_score, final_test_score, best_step = 0, 0, 0, 0
 
     train_scores, val_scores, test_scores = [], [], []
@@ -281,9 +281,12 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
         total_time += toc - tic
 
         if epoch == args.n_epochs or epoch % args.eval_every == 0 or epoch % args.log_every == 0:
+            tic = time.time()
             train_score, val_score, test_score, train_loss, val_loss, test_loss, pred = evaluate(
                 args, graph, model, eval_dataloader, labels, train_idx, val_idx, test_idx, criterion, evaluator_wrapper
             )
+            eval_num += 1
+            eval_time += (time.time() - tic)
 
             if val_score > best_val_score:
                 best_val_score = val_score
@@ -292,7 +295,9 @@ def run(args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running,
                 best_step = epoch
 
             if epoch % args.log_every == 0:
-                out_msg = f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}, Average epoch time: {total_time / epoch:.2f}s\n" \
+                out_msg = f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}," \
+                          f"Average epoch time: {total_time / epoch:.2f}s, " \
+                          f"Average Eval epoch time: {eval_time / eval_num:.2f}s\n" \
                         f"Loss: {loss:.4f} Train/Val/Test loss: {train_loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n" \
                         f"Train/Val/Test: {train_score:.4f}/{val_score:.4f}/{test_score:.4f}\n"\
                         f"Best val/Final test score/Best Step: {best_val_score:.4f}/{final_test_score:.4f}/{best_step}\n"
