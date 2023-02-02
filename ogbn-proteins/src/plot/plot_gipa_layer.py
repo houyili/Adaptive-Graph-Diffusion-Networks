@@ -51,8 +51,8 @@ plt.xlabel("Number of layers")
 plt.ylabel("ROC-AUC")
 plt.xticks(x,['1','2','3','4','5','6'])
 
-plt.legend()
 
+plt.legend(loc=4)
 plt.grid(True)
 # plt.show()
 plt.savefig('./gipa_layer.png', dpi=500, bbox_inches='tight')
