@@ -24,9 +24,11 @@ def plot(file_name, out_put):
     data_dict = read_act_data(file_name)
     for name in data_dict.keys():
         plt.plot(x, data_dict[name], label=name)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
 
-    plt.ylabel("ROC-AUC (%)")
-    plt.legend()
+    plt.ylabel("ROC-AUC (%)", fontsize=12)
+    plt.legend(fontsize=12)
     plt.grid(True)
     plt.savefig(out_put, dpi=500, bbox_inches='tight')
 
